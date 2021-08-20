@@ -1,7 +1,6 @@
 from objects.game import Game
 import random
 import sys
-import json
 
 
 class MazeFactory(Game):
