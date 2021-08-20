@@ -1,12 +1,15 @@
+from objects.game import Game
 import random
 import sys
 import json
 
 
-class MazeFactory:
-    def __init__(self, size):
+class MazeFactory(Game):
+    def __init__(self):
+        super().__init__()
+        size = self.gameConf["game.mapSize"]
         self.width, self.height = size, size
-        self.EMPTY = 'e'
+        self.EMPTY = ' '
         self.WALL = 'w'
         self.AGENT = 'p'
         self.GOAL = 'x'
@@ -14,6 +17,7 @@ class MazeFactory:
         self.spaceCells = set()
         self.connected = set()
         self.walls = set()
+        Game.modifyGameData("map", map=self.__generateMaze())
 
     @staticmethod
     def adjacent(cell):
@@ -83,7 +87,7 @@ class MazeFactory:
         self.maze[TL] = self.AGENT
         self.maze[BR] = self.GOAL
 
-    def generateMaze(self):
+    def __generateMaze(self):
         print("Generating Maze...")
         self.width += 2
         self.height += 2
@@ -92,7 +96,3 @@ class MazeFactory:
         self.__primAlg()
         self.__populate()
         return [''.join(self.maze[(i, j)] for j in range(self.width)) for i in range(self.height)]
-
-
-maze = MazeFactory(9)
-print(maze.generateMaze())
