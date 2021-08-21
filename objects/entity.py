@@ -17,22 +17,26 @@ class AnimateEntity(Game):
 
 
 class InanimateEntity(Game):
+    tile_size = Game.settings["game.tileSize"]
+
     def __init__(self, tileX, tileY):
-        self.x, self.y = tileX * self.tile_size, tileY * self.tile_size
+        self.x, self.y = tileX * InanimateEntity.tile_size, tileY * InanimateEntity.tile_size
         super().__init__()
 
 
 class Box(InanimateEntity):
-    sprite = scale(image.load("assets/images/box.png"), (24, 24))
+    sprite = scale(image.load("assets/images/box.png"),
+                   (InanimateEntity.tile_size, InanimateEntity.tile_size))
+    invincible = False
 
     def __init__(self, tileX, tileY):
-        self.tile_size = Box.sprite.get_width()
         super().__init__(tileX, tileY)
 
 
 class Wall(InanimateEntity):
-    sprite = scale(image.load("assets/images/wall.png"), (24, 24))
+    sprite = scale(image.load("assets/images/wall.png"),
+                   (InanimateEntity.tile_size, InanimateEntity.tile_size))
+    invincible = True
 
     def __init__(self, tileX, tileY):
-        self.tile_size = Wall.sprite.get_width()
         super().__init__(tileX, tileY)

@@ -65,7 +65,10 @@ class MapFactory(Game):
                     doA, doB = A, B
                     break
             A, B = doA, doB
-            self.maze[A] = self.EMPTY
+            self.maze[A] = self.BOX if random.randrange(
+                1, 5) == 4 else self.EMPTY
+            self.maze[B] = self.BOX if random.randrange(
+                1, 5) == 4 else self.EMPTY
             self.walls.remove(A)
             self.spaceCells.add(A)
             self.connected.add(A)
@@ -118,3 +121,5 @@ class MapRenderer(Game):
         for item in self.map_item:
             if isinstance(item, Wall):
                 Game.surface.blit(Wall.sprite, (item.x, item.y))
+            elif isinstance(item, Box):
+                Game.surface.blit(Box.sprite, (item.x, item.y))
