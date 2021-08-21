@@ -1,4 +1,6 @@
 import json
+from pygame import display, init
+init()
 
 
 class Game:
@@ -7,6 +9,17 @@ class Game:
     settingsPath = "data/settings.json"
     gameConfPath = "data/game.options.json"
     mapPath = "data/map.json"
+    with open(settingsPath, "r") as __f:
+        settings = json.load(__f)
+    with open(gameConfPath, "r") as __g:
+        gameConf = json.load(__g)
+    with open(mapPath, "r") as __h:
+        map = json.load(__h)
+    resolution = settings["game.resolution"]
+    if resolution == [0, 0]:
+        screenInfo = display.Info()
+        resolution = [screenInfo.current_w, screenInfo.current_h]
+    surface = display.set_mode(resolution)
 
     def __init__(self):
         Game.__setJSON()

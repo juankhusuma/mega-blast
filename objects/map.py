@@ -1,17 +1,19 @@
 from objects.game import Game
+from objects.entity import Box, Wall
 import random
 import sys
 
 
-class MazeFactory(Game):
+class MapFactory(Game):
     def __init__(self):
         super().__init__()
         size = self.gameConf["game.mapSize"]
         self.width, self.height = size, size
-        self.EMPTY = ' '
+        self.EMPTY = 'e'
         self.WALL = 'w'
         self.AGENT = 'p'
         self.GOAL = 'x'
+        self.BOX = 'b'
         self.maze = {}
         self.spaceCells = set()
         self.connected = set()
@@ -93,5 +95,26 @@ class MazeFactory(Game):
         self.__initialize()
         self.__borderFill()
         self.__primAlg()
-        self.__populate()
+        # self.__populate()
         return [''.join(self.maze[(i, j)] for j in range(self.width)) for i in range(self.height)]
+
+
+class MapRenderer(Game):
+    def __init__(self):
+        print("Map renderer initialized...")
+        super().__init__()
+        self.map_item = []
+        self.__start()
+
+    def __start(self):
+        for i, column in enumerate(Game.map["map"]):
+            for j, item in enumerate(column):
+                if item == "b":
+                    self.map_item.append(Box(i, j))
+                elif item == "w":
+                    self.map_item.append(Wall(i, j))
+
+    def render(self):
+        for item in self.map_item:
+            if isinstance(item, Wall):
+                Game.surface.blit(Wall.sprite, (item.x, item.y))

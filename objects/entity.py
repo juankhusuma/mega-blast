@@ -1,4 +1,6 @@
 from objects.game import Game
+from pygame import image
+from pygame.transform import scale
 
 
 class AnimateEntity(Game):
@@ -15,11 +17,22 @@ class AnimateEntity(Game):
 
 
 class InanimateEntity(Game):
-    def __init__(self, tileX, tileY, tilesize):
-        self.x, self.y = tileX * tilesize, tileY * tilesize
+    def __init__(self, tileX, tileY):
+        self.x, self.y = tileX * self.tile_size, tileY * self.tile_size
         super().__init__()
 
 
 class Box(InanimateEntity):
-    def __init__(self, tileX, tileY, tilesize, spritePath):
-        super().__init__(tileX, tileY, tilesize)
+    sprite = scale(image.load("assets/images/box.png"), (24, 24))
+
+    def __init__(self, tileX, tileY):
+        self.tile_size = Box.sprite.get_width()
+        super().__init__(tileX, tileY)
+
+
+class Wall(InanimateEntity):
+    sprite = scale(image.load("assets/images/wall.png"), (24, 24))
+
+    def __init__(self, tileX, tileY):
+        self.tile_size = Wall.sprite.get_width()
+        super().__init__(tileX, tileY)
