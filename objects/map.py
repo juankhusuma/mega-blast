@@ -1,5 +1,5 @@
 from objects.game import Game
-from objects.entity import Box, Wall
+from objects.entity import Box, Empty, Mimic, Wall
 import random
 import sys
 
@@ -110,7 +110,11 @@ class MapFactory(Game):
         for c, a in enumerate(_map):
             for d, b in enumerate(a):
                 if c > 0 and c < len(_map) - 1 and d > 0 and d < len(a) - 1:
-                    _map[c][d] = "e"
+                    if random.randrange(1, 40) == 4 and b == "w":
+                        _map[c][d] = "m"
+                    if random.randrange(1, 10) == 3 and b == "w":
+                        _map[c][d] = "e"
+
         return _map
 
 
@@ -119,16 +123,31 @@ class MapRenderer(Game):
         print("Map renderer initialized...")
         super().__init__()
         self.map_item = []
+        self.map_width = len(Game.map["map"])
+        self.map_height = len(Game.map["map"][0])
+        print(self.map_width)
+        self.x_offset = Game.resolution[0]/2 / \
+            Game.settings["game.tileSize"] - self.map_width/2
+        self.y_offset = Game.resolution[1]/2 / \
+            Game.settings["game.tileSize"] - self.map_height/2
+        print(self.x_offset)
         self.__start()
 
     def __start(self):
         for i, column in enumerate(Game.map["map"]):
             for j, item in enumerate(column):
                 if item == "b":
-                    self.map_item.append(Box(i, j))
+                    self.map_item.append(
+                        Box(i + self.x_offset, j + self.y_offset))
                 elif item == "w":
-                    self.map_item.append(Wall(i, j))
-                # print(self.map_item[-1])
+                    self.map_item.append(
+                        Wall(i + self.x_offset, j + self.y_offset))
+                elif item == "m":
+                    self.map_item.append(
+                        Mimic(i + self.x_offset, j + self.y_offset))
+                elif item == "e":
+                    self.map_item.append(
+                        Empty(i + self.x_offset, j + self.y_offset))
 
     def render(self):
         for item in self.map_item:
@@ -136,3 +155,5 @@ class MapRenderer(Game):
                 Game.surface.blit(Wall.sprite, (item.x, item.y))
             elif isinstance(item, Box):
                 Game.surface.blit(Box.sprite, (item.x, item.y))
+            elif isinstance(item, Mimic):
+                Game.surface.blit(Mimic.sprite, (item.x, item.y))
