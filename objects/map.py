@@ -105,6 +105,12 @@ class MapFactory(Game):
             _map.pop()
             for i, j in enumerate(_map):
                 _map[i] = j[:-1]
+        for i, row in enumerate(_map):
+            _map[i] = list(row)
+        for c, a in enumerate(_map):
+            for d, b in enumerate(a):
+                if c > 0 and c < len(_map) - 1 and d > 0 and d < len(a) - 1:
+                    _map[c][d] = "e"
         return _map
 
 
