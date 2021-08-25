@@ -1,4 +1,4 @@
 {
-    "game.tileSize": 40,
-    "game.resolution": [0, 0]
+  "game.tileSize": 15,
+  "game.resolution": [0, 0]
 }

@@ -99,7 +99,13 @@ class MapFactory(Game):
         self.__borderFill()
         self.__primAlg()
         # self.__populate()
-        return [''.join(self.maze[(i, j)] for j in range(self.width)) for i in range(self.height)]
+        _map = [''.join(self.maze[(i, j)] for j in range(self.width))
+                for i in range(self.height)]
+        if len(_map) % 5 != 0:
+            _map.pop()
+            for i, j in enumerate(_map):
+                _map[i] = j[:-1]
+        return _map
 
 
 class MapRenderer(Game):
@@ -116,6 +122,7 @@ class MapRenderer(Game):
                     self.map_item.append(Box(i, j))
                 elif item == "w":
                     self.map_item.append(Wall(i, j))
+                # print(self.map_item[-1])
 
     def render(self):
         for item in self.map_item:

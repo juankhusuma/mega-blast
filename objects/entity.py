@@ -32,6 +32,9 @@ class Box(InanimateEntity):
     def __init__(self, tileX, tileY):
         super().__init__(tileX, tileY)
 
+    def __str__(self):
+        return "Box<{},{}>".format(self.x, self.y)
+
 
 class Wall(InanimateEntity):
     sprite = scale(image.load("assets/images/wall.png"),
@@ -40,3 +43,10 @@ class Wall(InanimateEntity):
 
     def __init__(self, tileX, tileY):
         super().__init__(tileX, tileY)
+
+    def __str__(self):
+        return "Wall<{},{}>".format(self.x, self.y)
+
+
+def Player(AnimateEntity):
+    pass
