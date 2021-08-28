@@ -65,10 +65,11 @@ class Player(AnimateEntity):
         moveImage2 = image.load(moveSpritePath+"/move2.png")
         [self.moveSprite.append(moveImage1) for _ in range(3)]
         [self.moveSprite.append(moveImage2) for _ in range(3)]
-        idleImage1 = image.load(idleSpritePath+"/idle/idle1.png")
-        idleImage2 = image.load(idleSpritePath+"/idle/idle2.png")
+        idleImage1 = image.load(idleSpritePath+"/idle1.png")
+        idleImage2 = image.load(idleSpritePath+"/idle2.png")
         [self.idleSprite.append(idleImage1) for _ in range(5)]
         self.idleSprite.append(idleImage2)
+        self.sprite = self.idleSprite[0]
 
 
 class Mimic(InanimateEntity):

@@ -1,5 +1,5 @@
 from objects.game import Game
-from objects.entity import Box, Empty, Mimic, Wall
+from objects.entity import Box, Empty, Mimic, Player, Wall
 import random
 import sys
 
@@ -11,8 +11,6 @@ class MapFactory(Game):
         self.width, self.height = size, size
         self.EMPTY = 'e'
         self.WALL = 'w'
-        self.AGENT = 'p'
-        self.GOAL = 'x'
         self.BOX = 'b'
         self.maze = {}
         self.spaceCells = set()
@@ -81,16 +79,6 @@ class MapFactory(Game):
                     print('%s/%s cells self.connected ...' %
                           (cs, ss), file=sys.stderr)
 
-    def __populate(self):
-        TL = (1, 1)
-        BR = (self.height-2, self.width-2)
-        if self.height % 2 == 0:
-            BR = (BR[0]-1, BR[1])
-        if self.width % 2 == 0:
-            BR = (BR[0], BR[1]-1)
-        self.maze[TL] = self.AGENT
-        self.maze[BR] = self.GOAL
-
     def __generateMaze(self):
         print("Generating Maze...")
         self.width += 2
@@ -98,13 +86,12 @@ class MapFactory(Game):
         self.__initialize()
         self.__borderFill()
         self.__primAlg()
-        # self.__populate()
         _map = [''.join(self.maze[(i, j)] for j in range(self.width))
                 for i in range(self.height)]
-        if len(_map) % 5 != 0:
-            _map.pop()
-            for i, j in enumerate(_map):
-                _map[i] = j[:-1]
+        # if len(_map) % 5 != 0:
+        #     _map.pop()
+        #     for i, j in enumerate(_map):
+        #         _map[i] = j[:-1]
         for i, row in enumerate(_map):
             _map[i] = list(row)
         for c, a in enumerate(_map):
@@ -125,12 +112,12 @@ class MapRenderer(Game):
         self.map_item = []
         self.map_width = len(Game.map["map"])
         self.map_height = len(Game.map["map"][0])
-        print(self.map_width)
         self.x_offset = Game.resolution[0]/2 / \
             Game.settings["game.tileSize"] - self.map_width/2
         self.y_offset = Game.resolution[1]/2 / \
             Game.settings["game.tileSize"] - self.map_height/2
-        print(self.x_offset)
+        self.player1 = Player(1, 1, 1/60, 1)
+        self.player2 = Player(2, 1, 1/60, 2)
         self.__start()
 
     def __start(self):
@@ -150,6 +137,11 @@ class MapRenderer(Game):
                         Empty(i + self.x_offset, j + self.y_offset))
 
     def render(self):
+        Game.surface.blit(self.player1.sprite, ((self.player1.x +
+                          self.x_offset)*Game.settings["game.tileSize"], ((self.player1.y+self.y_offset)*Game.settings["game.tileSize"])))
+        Game.surface.blit(self.player2.sprite, ((self.player2.x +
+                          self.x_offset)*Game.settings["game.tileSize"], ((self.player2.y+self.y_offset)*Game.settings["game.tileSize"])))
+        self.player1.moveX()
         for item in self.map_item:
             if isinstance(item, Wall):
                 Game.surface.blit(Wall.sprite, (item.x, item.y))
