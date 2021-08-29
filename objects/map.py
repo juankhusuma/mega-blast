@@ -1,3 +1,4 @@
+from pygame import image
 from objects.game import Game
 from objects.entity import Box, Empty, Mimic, Player, Wall
 import random
@@ -106,6 +107,7 @@ class MapFactory(Game):
 
 
 class MapRenderer(Game):
+    bomb = image.load("assets/images/regular_bomb.png")
     def __init__(self):
         print("Map renderer initialized...")
         super().__init__()
@@ -137,11 +139,10 @@ class MapRenderer(Game):
                         Empty(i + self.x_offset, j + self.y_offset))
 
     def render(self):
-        Game.surface.blit(self.player1.sprite, ((self.player1.x +
-                          self.x_offset)*Game.settings["game.tileSize"], ((self.player1.y+self.y_offset)*Game.settings["game.tileSize"])))
-        Game.surface.blit(self.player2.sprite, ((self.player2.x +
-                          self.x_offset)*Game.settings["game.tileSize"], ((self.player2.y+self.y_offset)*Game.settings["game.tileSize"])))
+        Game.surface.blit(self.player1.sprite, ((self.player1.x + self.x_offset)*Game.settings["game.tileSize"], ((self.player1.y+self.y_offset)*Game.settings["game.tileSize"])))
+        Game.surface.blit(self.player2.sprite, ((self.player2.x + self.x_offset)*Game.settings["game.tileSize"], ((self.player2.y+self.y_offset)*Game.settings["game.tileSize"])))
         self.player1.moveX()
+        Game.surface.blit(MapRenderer.bomb, ((self.player1.x + self.x_offset)*Game.settings["game.tileSize"] + 5, ((self.player1.y+self.y_offset)*Game.settings["game.tileSize"])+10))
         for item in self.map_item:
             if isinstance(item, Wall):
                 Game.surface.blit(Wall.sprite, (item.x, item.y))
