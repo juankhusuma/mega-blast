@@ -35,7 +35,7 @@ class Game:
             klass.map = json.load(h)
 
     @classmethod
-    def modifyGameData(klass, data_name, **kwargs):
+    def modifyGameData(klass, data_name, data):
         def __setData(_data, data):
             for key in data:
                 _data[key] = data[key]
@@ -50,5 +50,5 @@ class Game:
             path = klass.mapPath
             _data = klass.map
         with open(path, "w") as f:
-            json.dump(__setData(_data, kwargs), f)
+            json.dump(__setData(_data, data), f)
         klass.__setJSON()

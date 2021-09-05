@@ -1,3 +1,1 @@
-{
-  "game.mapSize": 25
-}
+{"game.player.count": 4, "game.bot.count": 3, "game.win.limit": 9}

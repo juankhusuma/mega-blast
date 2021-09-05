@@ -19,6 +19,13 @@ open_option = False
 open_quit_option = False
 open_option_input_prompt  = False
 
+player_count_options = [x + 1 for x in range(4)]
+bot_count_options = [x for x in range(4)]
+win_limit_options = [x + 1 for x in range(9)]
+player_count_selected = Game.gameConf["game.player.count"]
+bot_count_selected = Game.gameConf["game.bot.count"]
+win_limit_selected = Game.gameConf["game.win.limit"]
+
 def main_menu():
     global start, open_option, open_quit_option
     Text("Mega Blast!", size="xl", fg="white", bg="black", align="top-center")
@@ -50,7 +57,7 @@ def main_menu():
     Game.surface.blit(quit_txt.text, (quit_txt.x, quit_txt.y))
 
 def option_form_prompt():
-    global open_option, open_option_input_prompt, mapFactory
+    global open_option, open_option_input_prompt, mapFactory, player_count_selected, bot_count_selected, win_limit_selected
     Text("Mega Blast!", size="xl", fg="white", bg="black", align="top-center")
     warning1 = Text("Changing any value in the option will override", size="s", fg="white", bg="black", align="mid-center", display=False)
     warning2 = Text("your current game, Proceed?", size="s", fg="white", bg="black", align="mid-center", display=False)
@@ -71,6 +78,7 @@ def option_form_prompt():
         if mouse.get_pressed()[0]:
             open_option = False
             open_option_input_prompt = False
+            Game.modifyGameData("game-conf", { "game.player.count": player_count_selected, "game.bot.count": bot_count_selected, "game.win.limit": win_limit_selected })
             mapFactory = MapFactory()
             TIME.sleep(0.3)
     if cursor.hovered_text(no):
@@ -85,7 +93,7 @@ def option_form_prompt():
     Game.surface.blit(no.text, (no.x, no.y))
 
 def options_menu():
-    global open_option_input_prompt, open_option
+    global open_option_input_prompt, open_option, player_count_options, bot_count_options, win_limit_options, player_count_selected, bot_count_selected, win_limit_selected
     title = Text("Mega Blast!", size="xl", fg="white", bg="black", align="top-center")
     back = Text("Return to Main Menu", size="m", fg="red", bg="black", align="top-center", display=False)
     back.y += title.text.get_height() + 20
@@ -96,11 +104,61 @@ def options_menu():
             open_option = False
             TIME.sleep(0.3)
 
-    player_count = Text("Player Count", size="m", fg="white", bg="black", align="top-center", display=False)
-    player_count.y += title.text.get_height() + 20 + back.text.get_height() + 20
+    player_count = Text("Player Amount", size="m", fg="white", bg="black", align="top-center", display=False)
+    player_count.y += title.text.get_height() + back.text.get_height() + 40
 
-    player_count_options = [x + 1 for x in range(4)]
-    map(player_count_options, lambda x: print(x))
+    for i, j in enumerate(player_count_options):
+        text = Text(str(j), size="m", fg=[200, 200, 200], bg="black", align="top-center", display=False)
+        text.y += title.text.get_height() + back.text.get_height() + player_count.text.get_height() + 60
+        text.x = text.x + (i - 2)*45
+        if cursor.hovered_text(text):
+            text = Text(str(j), size="m", fg=[150, 150, 150], bg="black", align="top-center", display=False)
+            text.y += title.text.get_height() + back.text.get_height() + player_count.text.get_height() + 60
+            text.x = text.x + (i - 2)*45
+            if mouse.get_pressed()[0]:
+                player_count_selected = j
+                TIME.sleep(0.3)
+        Game.surface.blit(text.text, (text.x, text.y))
+        if j == player_count_selected:
+            draw.rect(Game.surface, (0, 250, 0), (text.x - 4, text.y - 4, text.text.get_width() + 6, text.text.get_height() + 6), 5)
+
+    bot_count = Text("Bot Amount", size="m", fg="white", bg="black", align="top-center", display=False)
+    bot_count.y += title.text.get_height() + back.text.get_height() + player_count.text.get_height() + text.text.get_height() + 80
+
+    __text_height = text.text.get_height()
+
+    for i, j in enumerate(bot_count_options):
+        text = Text(str(j), size="m", fg=[200, 200, 200], bg="black", align="top-center", display=False)
+        text.y += title.text.get_height() + back.text.get_height() + player_count.text.get_height() + text.text.get_height() + bot_count.text.get_height() + 100
+        text.x = text.x + (j - 2)*45
+        if cursor.hovered_text(text):
+            text = Text(str(j), size="m", fg=[150, 150, 150], bg="black", align="top-center", display=False)
+            text.y += title.text.get_height() + back.text.get_height() + player_count.text.get_height() + text.text.get_height() + bot_count.text.get_height() + 100
+            text.x = text.x + (j - 2)*45
+            if mouse.get_pressed()[0]:
+                bot_count_selected = j
+                TIME.sleep(0.3)
+        Game.surface.blit(text.text, (text.x, text.y))
+        if j == bot_count_selected:
+            draw.rect(Game.surface, (0, 250, 0), (text.x - 4, text.y - 4, text.text.get_width() + 6, text.text.get_height() + 6), 5)
+
+    win_limit = Text("Win Limit", size="m", fg="white", bg="black", align="top-center", display=False)
+    win_limit.y +=  title.text.get_height() + back.text.get_height() + player_count.text.get_height() + text.text.get_height() + bot_count.text.get_height() + __text_height + 120
+
+    for i, j in enumerate(win_limit_options):
+        text = Text(str(j), size="m", fg=[200, 200, 200], bg="black", align="top-center", display=False)
+        text.y += title.text.get_height() + back.text.get_height() + player_count.text.get_height() + text.text.get_height() + __text_height + win_limit.text.get_height() + bot_count.text.get_height() + 140
+        text.x = text.x + (j - 5)*45
+        if cursor.hovered_text(text):
+            text = Text(str(j), size="m", fg=[150, 150, 150], bg="black", align="top-center", display=False)
+            text.y += title.text.get_height() + back.text.get_height() + player_count.text.get_height() + text.text.get_height() + __text_height + win_limit.text.get_height() + bot_count.text.get_height() + 140
+            text.x = text.x + (j - 5)*45
+            if mouse.get_pressed()[0]:
+                win_limit_selected = j
+                TIME.sleep(0.3)
+        Game.surface.blit(text.text, (text.x, text.y))
+        if j == win_limit_selected:
+            draw.rect(Game.surface, (0, 250, 0), (text.x - 4, text.y - 4, text.text.get_width() + 6, text.text.get_height() + 6), 5)
 
     save = Text("Save Settings", size="m", fg="green", bg="black", align="bottom-center")
     if cursor.hovered_text(save):
@@ -110,6 +168,8 @@ def options_menu():
 
     Game.surface.blit(back.text, (back.x, back.y))
     Game.surface.blit(player_count.text, (player_count.x, player_count.y))
+    Game.surface.blit(bot_count.text, (bot_count.x, bot_count.y))
+    Game.surface.blit(win_limit.text, (win_limit.x, win_limit.y))
 
 def quit_option_menu():
     global open_quit_option

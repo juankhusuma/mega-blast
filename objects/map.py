@@ -10,7 +10,7 @@ import sys
 class MapFactory(Game):
     def __init__(self):
         super().__init__()
-        size = self.gameConf["game.mapSize"]
+        size = self.settings["game.mapSize"]
         self.width, self.height = size, size
         self.EMPTY = 'e'
         self.WALL = 'w'
@@ -20,7 +20,7 @@ class MapFactory(Game):
         self.connected = set()
         self.walls = set()
         print("Generating new map")
-        Game.modifyGameData("map", map=self.__generateMaze())
+        Game.modifyGameData("map", {"map": self.__generateMaze()})
 
     @staticmethod
     def adjacent(cell):
