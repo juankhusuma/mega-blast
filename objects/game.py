@@ -1,11 +1,12 @@
 import json
-from pygame import display, init
+from pygame import display, init, time
 init()
 
 
 class Game:
     """The game class is used to share settings across all objects in the game"""
-
+    framerate = 0
+    Clock = time.Clock()
     settingsPath = "data/settings.json"
     gameConfPath = "data/game.options.json"
     mapPath = "data/map.json"

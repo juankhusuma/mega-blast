@@ -1,14 +1,6 @@
 from objects.game import Game
 from pygame import font, init
 init()
-
-fonts = {
-    30: font.Font("assets/font/font.ttf", 30),
-    20: font.Font("assets/font/font.ttf", 20),
-    10: font.Font("assets/font/font.ttf", 10),
-}
-
-
 class Text(Game):
     fonts = {
         "xl": font.Font("assets/font/font.ttf", 50),

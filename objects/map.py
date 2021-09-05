@@ -1,6 +1,8 @@
+from io import IncrementalNewlineDecoder
 from pygame import image
 from objects.game import Game
-from objects.entity import Box, Empty, Mimic, Player, Wall
+from objects.entity import Box, Empty, Mimic, Wall
+from objects.player import Player
 import random
 import sys
 
@@ -17,6 +19,7 @@ class MapFactory(Game):
         self.spaceCells = set()
         self.connected = set()
         self.walls = set()
+        print("Generating new map")
         Game.modifyGameData("map", map=self.__generateMaze())
 
     @staticmethod
@@ -100,7 +103,7 @@ class MapFactory(Game):
                 if c > 0 and c < len(_map) - 1 and d > 0 and d < len(a) - 1:
                     if random.randrange(1, 40) == 4 and b == "w":
                         _map[c][d] = "m"
-                    if random.randrange(1, 10) == 3 and b == "w":
+                    if random.randrange(1, 5) == 3 and b == "w":
                         _map[c][d] = "e"
 
         return _map
@@ -114,10 +117,8 @@ class MapRenderer(Game):
         self.map_item = []
         self.map_width = len(Game.map["map"])
         self.map_height = len(Game.map["map"][0])
-        self.x_offset = Game.resolution[0]/2 / \
-            Game.settings["game.tileSize"] - self.map_width/2
-        self.y_offset = Game.resolution[1]/2 / \
-            Game.settings["game.tileSize"] - self.map_height/2
+        Game.x_offset = Game.resolution[0]/2 / Game.settings["game.tileSize"] - self.map_width/2
+        Game.y_offset = Game.resolution[1]/2 / Game.settings["game.tileSize"] - self.map_height/2
         self.player1 = Player(1, 1, 1/60, 1)
         self.player2 = Player(2, 1, 1/60, 2)
         self.__start()
@@ -126,22 +127,20 @@ class MapRenderer(Game):
         for i, column in enumerate(Game.map["map"]):
             for j, item in enumerate(column):
                 if item == "b":
-                    self.map_item.append(
-                        Box(i + self.x_offset, j + self.y_offset))
+                    self.map_item.append(Box(i + self.x_offset, j + self.y_offset))
                 elif item == "w":
-                    self.map_item.append(
-                        Wall(i + self.x_offset, j + self.y_offset))
+                    self.map_item.append(Wall(i + self.x_offset, j + self.y_offset))
                 elif item == "m":
-                    self.map_item.append(
-                        Mimic(i + self.x_offset, j + self.y_offset))
+                    self.map_item.append(Mimic(i + self.x_offset, j + self.y_offset))
                 elif item == "e":
-                    self.map_item.append(
-                        Empty(i + self.x_offset, j + self.y_offset))
+                    self.map_item.append(Empty(i + self.x_offset, j + self.y_offset))
 
     def render(self):
-        Game.surface.blit(self.player1.sprite, ((self.player1.x + self.x_offset)*Game.settings["game.tileSize"], ((self.player1.y+self.y_offset)*Game.settings["game.tileSize"])))
-        Game.surface.blit(self.player2.sprite, ((self.player2.x + self.x_offset)*Game.settings["game.tileSize"], ((self.player2.y+self.y_offset)*Game.settings["game.tileSize"])))
-        self.player1.moveX()
+        Game.surface.blit(self.player1.sprite, ((self.player1.x + Game.x_offset)*Game.settings["game.tileSize"], ((self.player1.y+Game.y_offset)*Game.settings["game.tileSize"])))
+        Game.surface.blit(self.player2.sprite, ((self.player2.x + Game.x_offset)*Game.settings["game.tileSize"], ((self.player2.y+Game.y_offset)*Game.settings["game.tileSize"]))) 
+        self.player1.facingRight = True
+        self.player1.idle = False
+        self.player1.move()
         Game.surface.blit(MapRenderer.bomb, ((self.player1.x + self.x_offset)*Game.settings["game.tileSize"] + 5, ((self.player1.y+self.y_offset)*Game.settings["game.tileSize"])+10))
         for item in self.map_item:
             if isinstance(item, Wall):
@@ -150,3 +149,4 @@ class MapRenderer(Game):
                 Game.surface.blit(Box.sprite, (item.x, item.y))
             elif isinstance(item, Mimic):
                 Game.surface.blit(Mimic.sprite, (item.x, item.y))
+

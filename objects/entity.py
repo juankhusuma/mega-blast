@@ -5,18 +5,53 @@ from pygame.transform import scale
 
 class AnimateEntity(Game):
     def __init__(self, x, y, speed):
-        self.x, self.y = x, y
-        self.speed = speed
+        # Speed will be in tile per second
+        self.x = x
+        self.y = y
+        self.__speed = speed
+        self.__updateSpeed()
         self.sprite = None
+        self.idle = False
+        self.faceUp = False
+        self.faceDown = False
+        self.faceLeft = False
+        self.faceRight = False
         self.moveSprite = []
         self.idleSprite = []
         super().__init__()
 
-    def moveX(self):
-        self.x += self.speed
+    def __updateSpeed(self):
+        if Game.framerate > 0:
+            self.speed = self.__speed * Game.settings["game.tileSize"] / Game.framerate
+        else:
+            self.speed = 0
 
-    def moveY(self):
+    def moveRight(self):
+        self.__updateSpeed()
+        self.x += self.speed
+    
+    def moveLeft(self):
+        self.__updateSpeed()
+        self.x -= self.speed
+
+    def moveDown(self):
+        self.__updateSpeed()
         self.y += self.speed
+
+    def moveUp(self):
+        self.__updateSpeed()
+        self.speed -= self.speed
+
+    def move(self):
+        if not self.idle:
+            if self.faceUp:
+                self.moveUp()
+            if self.faceDown:
+                self.moveDown()
+            if self.faceLeft:
+                self.moveLeft()
+            if self.faceRight:
+                self.moveRight()
 
 
 class InanimateEntity(Game):
@@ -54,22 +89,6 @@ class Wall(InanimateEntity):
 
     def __str__(self):
         return "Wall<{},{}>".format(self.x, self.y)
-
-
-class Player(AnimateEntity):
-    def __init__(self, x, y, speed, id):
-        super().__init__(x, y, speed)
-        moveSpritePath = "assets/images/player{}/move".format(id)
-        idleSpritePath = "assets/images/player{}/idle".format(id)
-        moveImage1 = image.load(moveSpritePath+"/move1.png")
-        moveImage2 = image.load(moveSpritePath+"/move2.png")
-        [self.moveSprite.append(moveImage1) for _ in range(3)]
-        [self.moveSprite.append(moveImage2) for _ in range(3)]
-        idleImage1 = image.load(idleSpritePath+"/idle1.png")
-        idleImage2 = image.load(idleSpritePath+"/idle2.png")
-        [self.idleSprite.append(idleImage1) for _ in range(5)]
-        self.idleSprite.append(idleImage2)
-        self.sprite = self.idleSprite[0]
 
 
 class Mimic(InanimateEntity):
