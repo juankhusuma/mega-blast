@@ -9,6 +9,7 @@ class AnimateEntity(Game):
         self.x = x
         self.y = y
         self.__speed = speed
+        self.speed = 0
         self.__updateSpeed()
         self.sprite = None
         self.idle = False
@@ -26,32 +27,16 @@ class AnimateEntity(Game):
         else:
             self.speed = 0
 
-    def moveRight(self):
-        self.__updateSpeed()
-        self.x += self.speed
-    
-    def moveLeft(self):
-        self.__updateSpeed()
-        self.x -= self.speed
-
-    def moveDown(self):
-        self.__updateSpeed()
-        self.y += self.speed
-
-    def moveUp(self):
-        self.__updateSpeed()
-        self.speed -= self.speed
-
     def move(self):
-        if not self.idle:
-            if self.faceUp:
-                self.moveUp()
-            if self.faceDown:
-                self.moveDown()
-            if self.faceLeft:
-                self.moveLeft()
-            if self.faceRight:
-                self.moveRight()
+        self.__updateSpeed()
+        if self.faceUp:
+            self.y -= self.speed
+        if self.faceDown:
+            self.y += self.speed
+        if self.faceLeft:
+            self.x -= self.speed
+        if self.faceRight:
+            self.x += self.speed
 
 
 class InanimateEntity(Game):

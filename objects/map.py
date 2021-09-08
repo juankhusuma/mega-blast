@@ -1,5 +1,6 @@
 from io import IncrementalNewlineDecoder
-from pygame import image
+from objects.text import Text
+from pygame import display, image
 from objects.game import Game
 from objects.entity import Box, Empty, Mimic, Wall
 from objects.player import Player
@@ -8,7 +9,10 @@ import sys
 
 
 class MapFactory(Game):
+    test = 0
     def __init__(self):
+        MapFactory.test += 1
+        self.test = MapFactory.test
         super().__init__()
         size = self.settings["game.mapSize"]
         self.width, self.height = size, size
@@ -19,8 +23,9 @@ class MapFactory(Game):
         self.spaceCells = set()
         self.connected = set()
         self.walls = set()
+        self._map = self.__generateMaze()
         print("Generating new map")
-        Game.modifyGameData("map", {"map": self.__generateMaze()})
+        Game.modifyGameData("map", {"map": self._map, "test": self.test})
 
     @staticmethod
     def adjacent(cell):
@@ -92,10 +97,6 @@ class MapFactory(Game):
         self.__primAlg()
         _map = [''.join(self.maze[(i, j)] for j in range(self.width))
                 for i in range(self.height)]
-        # if len(_map) % 5 != 0:
-        #     _map.pop()
-        #     for i, j in enumerate(_map):
-        #         _map[i] = j[:-1]
         for i, row in enumerate(_map):
             _map[i] = list(row)
         for c, a in enumerate(_map):
@@ -115,15 +116,18 @@ class MapRenderer(Game):
         print("Map renderer initialized...")
         super().__init__()
         self.map_item = []
+        self.players = []
         self.map_width = len(Game.map["map"])
         self.map_height = len(Game.map["map"][0])
         Game.x_offset = Game.resolution[0]/2 / Game.settings["game.tileSize"] - self.map_width/2
         Game.y_offset = Game.resolution[1]/2 / Game.settings["game.tileSize"] - self.map_height/2
-        self.player1 = Player(1, 1, 1/60, 1)
-        self.player2 = Player(2, 1, 1/60, 2)
-        self.__start()
+        self.start()
 
-    def __start(self):
+    def start(self):
+        self.map_item = []
+        player_count = Game.gameConf["game.player.count"]
+        bot_count = Game.gameConf["game.bot.count"]
+        space = 5
         for i, column in enumerate(Game.map["map"]):
             for j, item in enumerate(column):
                 if item == "b":
@@ -133,15 +137,22 @@ class MapRenderer(Game):
                 elif item == "m":
                     self.map_item.append(Mimic(i + self.x_offset, j + self.y_offset))
                 elif item == "e":
-                    self.map_item.append(Empty(i + self.x_offset, j + self.y_offset))
+                    if space > 0 or player_count == 0:
+                        self.map_item.append(Empty(i + self.x_offset, j + self.y_offset))
+                        space -= 1
+                    else:
+                        space = 5
+                        self.players.append(Player((i + self.x_offset) * Game.settings["game.tileSize"], (j + self.y_offset) * Game.settings["game.tileSize"], 5, player_count))
+                        player_count -= 1
+
 
     def render(self):
-        Game.surface.blit(self.player1.sprite, ((self.player1.x + Game.x_offset)*Game.settings["game.tileSize"], ((self.player1.y+Game.y_offset)*Game.settings["game.tileSize"])))
-        Game.surface.blit(self.player2.sprite, ((self.player2.x + Game.x_offset)*Game.settings["game.tileSize"], ((self.player2.y+Game.y_offset)*Game.settings["game.tileSize"]))) 
-        self.player1.facingRight = True
-        self.player1.idle = False
-        self.player1.move()
-        Game.surface.blit(MapRenderer.bomb, ((self.player1.x + self.x_offset)*Game.settings["game.tileSize"] + 5, ((self.player1.y+self.y_offset)*Game.settings["game.tileSize"])+10))
+        # Game.surface.blit(self.player1.sprite, ((self.player1.x + Game.x_offset)*Game.settings["game.tileSize"], ((self.player1.y+Game.y_offset)*Game.settings["game.tileSize"])))
+        # Game.surface.blit(self.player2.sprite, ((self.player2.x + Game.x_offset)*Game.settings["game.tileSize"], ((self.player2.y+Game.y_offset)*Game.settings["game.tileSize"]))) 
+        # self.player1.facingRight = True
+        # self.player1.idle = False
+        # self.player1.move()
+        # Game.surface.blit(MapRenderer.bomb, ((self.player1.x + self.x_offset)*Game.settings["game.tileSize"] + 5, ((self.player1.y+self.y_offset)*Game.settings["game.tileSize"])+10))
         for item in self.map_item:
             if isinstance(item, Wall):
                 Game.surface.blit(Wall.sprite, (item.x, item.y))
@@ -149,4 +160,8 @@ class MapRenderer(Game):
                 Game.surface.blit(Box.sprite, (item.x, item.y))
             elif isinstance(item, Mimic):
                 Game.surface.blit(Mimic.sprite, (item.x, item.y))
+        for item in self.players:
+            if isinstance(item, Player):
+                item.animate()
+                item.move()
 

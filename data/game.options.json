@@ -1,1 +1,1 @@
-{"game.player.count": 4, "game.bot.count": 3, "game.win.limit": 9}
+{"game.player.count": 4, "game.bot.count": 3, "game.win.limit": 8, "players": {"player1": {"win": 3}, "player2": {"win": 2}}, "bots": {"bot1": {"win": 4}}}

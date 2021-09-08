@@ -1,4 +1,4 @@
-from pygame.constants import KEYDOWN, K_ESCAPE, K_a, K_d, K_s, K_w
+from pygame.constants import KEYDOWN, KEYUP, K_DOWN, K_ESCAPE, K_LEFT, K_RIGHT, K_UP, K_a, K_d, K_f, K_g, K_h, K_i, K_j, K_k, K_l, K_s, K_t, K_w
 from objects.player import Player
 from objects.game import Game
 from objects.cursor import Cursor
@@ -80,6 +80,7 @@ def option_form_prompt():
             open_option_input_prompt = False
             Game.modifyGameData("game-conf", { "game.player.count": player_count_selected, "game.bot.count": bot_count_selected, "game.win.limit": win_limit_selected })
             mapFactory = MapFactory()
+            mapRenderer.start()
             TIME.sleep(0.3)
     if cursor.hovered_text(no):
         no = Text("No", size="s", fg=[150, 150, 150], bg="black", align="mid-center", display=False)
@@ -203,7 +204,6 @@ def quit_option_menu():
 
 def main():
     global start, open_option, cursor, open_quit_option, open_option_input_prompt
-    player1 = Player(0, 0, 5, 1)
     while True:
         cursor = Cursor()
         for e in event.get():
@@ -215,16 +215,160 @@ def main():
                 open_option = False
                 open_quit_option = False
                 open_option_input_prompt = False
-            if e.type == KEYDOWN:
-                if e.key == K_w: # Up
-                    pass
-                if e.key == K_a: # Left
-                    pass
-                if e.key == K_s: # Down
-                    pass
-                if e.key == K_d: # Right
-                    pass
-                
+            for player in mapRenderer.players:
+                if isinstance(player, Player):
+                    if e.type == KEYDOWN:
+                        # UP
+                        if e.key == K_w and player.id == 1:
+                            player.faceUp = True
+                            player.faceDown = False
+                            player.idle = False
+                            player.frame = 0
+
+                        if e.key == K_t and player.id == 2:
+                            player.faceDown = False
+                            player.faceUp = True
+                            player.idle = False
+                            player.frame = 0
+
+                        if e.key == K_i and player.id == 3:
+                            player.faceDown = False
+                            player.faceUp = True
+                            player.idle = False
+                            player.frame = 0
+
+                        if e.key == K_UP and player.id == 4:
+                            player.faceDown = False
+                            player.idle = False
+                            player.faceUp = True
+                            player.frame = 0
+
+                        # LEFT
+                        if e.key == K_a and player.id == 1:
+                            player.faceLeft = True
+                            player.faceRight = False
+                            player.idle = False
+                            player.frame = 0
+
+                        if e.key == K_f and player.id == 2:
+                            player.faceRight = False
+                            player.faceLeft = True
+                            player.idle = False
+                            player.frame = 0
+
+                        if e.key == K_j and player.id == 3:
+                            player.faceRight = False
+                            player.faceLeft = True
+                            player.idle = False
+                            player.frame = 0
+
+                        if e.key == K_LEFT and player.id == 4:
+                            player.faceRight = False
+                            player.idle = False
+                            player.faceLeft = True
+                            player.frame = 0
+
+                        # DOWN
+                        if e.key == K_s and player.id == 1:
+                            player.faceUp = False
+                            player.faceDown = True
+                            player.idle = False
+                            player.frame = 0
+
+                        if e.key == K_g and player.id == 2:
+                            player.faceUp = False
+                            player.faceDown = True
+                            player.idle = False
+                            player.frame = 0
+
+                        if e.key == K_k and player.id == 3:
+                            player.faceUp = False
+                            player.faceDown = True
+                            player.idle = False
+                            player.frame = 0
+
+                        if e.key == K_DOWN and player.id == 4:
+                            player.faceUp = False
+                            player.idle = False
+                            player.faceDown = True
+                            player.frame = 0
+
+                        # RIGHT
+                        if e.key == K_d and player.id == 1:
+                            player.faceLeft = False
+                            player.faceRight = True
+                            player.idle = False
+                            player.frame = 0
+
+                        if e.key == K_h and player.id == 2:
+                            player.faceLeft = False
+                            player.faceRight = True
+                            player.idle = False
+                            player.frame = 0
+
+                        if e.key == K_l and player.id == 3:
+                            player.faceLeft = False
+                            player.faceRight = True
+                            player.idle = False
+                            player.frame = 0
+
+                        if e.key == K_RIGHT and player.id == 4:
+                            player.faceLeft = False
+                            player.idle = False
+                            player.faceRight = True
+                            player.frame = 0
+ 
+                    if e.type == KEYUP:
+                        # UP
+                        if e.key == K_w and player.id == 1:
+                            player.faceUp = False
+                        if e.key == K_t and player.id == 2:
+                            player.faceUp = False
+                        if e.key == K_i and player.id == 3:
+                            player.faceUp = False
+                        if e.key == K_UP and player.id == 4:
+                            player.faceUp = False
+
+                        # LEFT
+                        if e.key == K_a and player.id == 1:
+                            player.faceLeft = False
+                        if e.key == K_f and player.id == 2:
+                            player.faceLeft = False
+                        if e.key == K_j and player.id == 3:
+                            player.faceLeft = False
+                        if e.key == K_LEFT and player.id == 4:
+                            player.faceLeft = False
+
+                        # DOWN
+                        if e.key == K_s and player.id == 1:
+                            player.faceDown = False
+                        if e.key == K_g and player.id == 2:
+                            player.faceDown = False
+                        if e.key == K_k and player.id == 3:
+                            player.faceDown = False
+                        if e.key == K_DOWN and player.id == 4:
+                            player.faceDown = False
+
+                        # RIGHT
+                        if e.key == K_d and player.id == 1:
+                            player.faceRight = False
+                        if e.key == K_h and player.id == 2:
+                            player.faceRight = False
+                        if e.key == K_l and player.id == 3:
+                            player.faceRight = False
+                        if e.key == K_RIGHT and player.id == 4:
+                            player.faceRight = False
+
+                        # STOPPING ANIMATION
+                        if player.id == 1 and not (player.faceUp or player.faceDown or player.faceLeft or player.faceRight):
+                            player.idle = True
+                        if player.id == 2 and not (player.faceUp or player.faceDown or player.faceLeft or player.faceRight):
+                            player.idle = True
+                        if player.id == 3 and not (player.faceUp or player.faceDown or player.faceLeft or player.faceRight):
+                            player.idle = True
+                        if player.id == 4 and not (player.faceUp or player.faceDown or player.faceLeft or player.faceRight):
+                            player.idle = True
+
         Game.surface.fill("black")
 
         if start:
@@ -244,7 +388,7 @@ def main():
         elif open_option:
             options_menu()
 
-                
+
         elif open_quit_option:
             quit_option_menu()
 
