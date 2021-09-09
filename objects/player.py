@@ -1,7 +1,7 @@
 from objects.game import Game
 from objects.entity import AnimateEntity
 from objects.text import Text
-from pygame import image
+from pygame import Rect, image
 
 class Player(AnimateEntity, Game):
     def __init__(self, x, y, speed, id):
@@ -28,6 +28,7 @@ class Player(AnimateEntity, Game):
         [self.idleSprite.append(idleImage2) for _ in range(10)]
 
         self.sprite = idleImage1
+        self.Rect = Rect(self.x, self.y, self.sprite.get_width(), self.sprite.get_height())
 
     def animate(self):
         id_label = Text(str(self.id), size="xs", fg="white", bg="black", align=[self.x + self.sprite.get_width()/2, self.y], display=False)
@@ -45,7 +46,7 @@ class Player(AnimateEntity, Game):
             else:
                 self.frame = 0 
             self.sprite = self.moveSprite[self.frame]
-        Game.surface.blit(self.sprite, (self.x, self.y))
+        Game.surface.blit(self.sprite, (self.Rect.x, self.Rect.y))
         Game.surface.blit(id_label.text, (id_label.x, id_label.y))
 
 
@@ -56,3 +57,6 @@ class Player(AnimateEntity, Game):
 class Bot(Player):
     def __init__(self, x, y, speed, id):
         super().__init__(x, y, speed, id)
+
+    def animate(self):
+        return super().animate()

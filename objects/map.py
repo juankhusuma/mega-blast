@@ -1,9 +1,8 @@
-from io import IncrementalNewlineDecoder
 from objects.text import Text
-from pygame import display, image
+from pygame import image, draw
 from objects.game import Game
 from objects.entity import Box, Empty, Mimic, Wall
-from objects.player import Player
+from objects.player import Bot, Player
 import random
 import sys
 
@@ -115,53 +114,53 @@ class MapRenderer(Game):
     def __init__(self):
         print("Map renderer initialized...")
         super().__init__()
-        self.map_item = []
-        self.players = []
-        self.map_width = len(Game.map["map"])
-        self.map_height = len(Game.map["map"][0])
-        Game.x_offset = Game.resolution[0]/2 / Game.settings["game.tileSize"] - self.map_width/2
-        Game.y_offset = Game.resolution[1]/2 / Game.settings["game.tileSize"] - self.map_height/2
         self.start()
 
     def start(self):
-        self.map_item = []
+        Game.map_item = []
+        Game.players = []
+        Game.bots = []
         player_count = Game.gameConf["game.player.count"]
         bot_count = Game.gameConf["game.bot.count"]
-        space = 5
+        space = 10
         for i, column in enumerate(Game.map["map"]):
             for j, item in enumerate(column):
                 if item == "b":
-                    self.map_item.append(Box(i + self.x_offset, j + self.y_offset))
+                    Game.map_item.append(Box(i, j, Game.x_offset, Game.y_offset))
                 elif item == "w":
-                    self.map_item.append(Wall(i + self.x_offset, j + self.y_offset))
+                    Game.map_item.append(Wall(i, j, Game.x_offset, Game.y_offset))
                 elif item == "m":
-                    self.map_item.append(Mimic(i + self.x_offset, j + self.y_offset))
+                    Game.map_item.append(Mimic(i, j, Game.x_offset, Game.y_offset))
                 elif item == "e":
-                    if space > 0 or player_count == 0:
-                        self.map_item.append(Empty(i + self.x_offset, j + self.y_offset))
+                    Game.map_item.append(Empty(i, j, Game.x_offset, Game.y_offset))
+                    if space > 0:
                         space -= 1
                     else:
-                        space = 5
-                        self.players.append(Player((i + self.x_offset) * Game.settings["game.tileSize"], (j + self.y_offset) * Game.settings["game.tileSize"], 5, player_count))
-                        player_count -= 1
+                        space = 50
+                        if player_count > 0:
+                            Game.players.append(Player((i*Game.settings["game.tileSize"] + self.x_offset), ((j*Game.settings["game.tileSize"]) + self.y_offset), 5, player_count))
+                            player_count -= 1
+                            continue
+                        if bot_count > 0 and player_count == 0:
+                            Game.bots.append(Bot(i*Game.settings["game.tileSize"] + self.x_offset, ((j*Game.settings["game.tileSize"]) + self.y_offset), 5, bot_count))
+                            bot_count -= 1
 
-
-    def render(self):
-        # Game.surface.blit(self.player1.sprite, ((self.player1.x + Game.x_offset)*Game.settings["game.tileSize"], ((self.player1.y+Game.y_offset)*Game.settings["game.tileSize"])))
-        # Game.surface.blit(self.player2.sprite, ((self.player2.x + Game.x_offset)*Game.settings["game.tileSize"], ((self.player2.y+Game.y_offset)*Game.settings["game.tileSize"]))) 
-        # self.player1.facingRight = True
-        # self.player1.idle = False
-        # self.player1.move()
-        # Game.surface.blit(MapRenderer.bomb, ((self.player1.x + self.x_offset)*Game.settings["game.tileSize"] + 5, ((self.player1.y+self.y_offset)*Game.settings["game.tileSize"])+10))
-        for item in self.map_item:
+    @staticmethod
+    def render():
+        for item in Game.map_item:
             if isinstance(item, Wall):
                 Game.surface.blit(Wall.sprite, (item.x, item.y))
             elif isinstance(item, Box):
                 Game.surface.blit(Box.sprite, (item.x, item.y))
             elif isinstance(item, Mimic):
                 Game.surface.blit(Mimic.sprite, (item.x, item.y))
-        for item in self.players:
-            if isinstance(item, Player):
-                item.animate()
-                item.move()
+        for item in Game.players:
+            item.animate()
+            item.move()
+            draw.rect(Game.surface, "red", item.Rect, 1)
+
+        for item in Game.bots:
+            item.animate()
+            item.move()
+            draw.rect(Game.surface, "green", item.Rect, 1)
 

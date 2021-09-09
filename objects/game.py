@@ -1,11 +1,13 @@
 import json
-from pygame import display, init, time
+from pygame import display, init, time, mixer
 init()
-
 
 class Game:
     """The game class is used to share settings across all objects in the game"""
     framerate = 0
+    menu_music_path = "assets/audio/bg_menu.mp3"
+    game_music_path = "assets/audio/bg_game.mp3"
+    click_music_path = "assets/audio/click.wav"
     Clock = time.Clock()
     settingsPath = "data/settings.json"
     gameConfPath = "data/game.options.json"
@@ -21,6 +23,16 @@ class Game:
         screenInfo = display.Info()
         resolution = [screenInfo.current_w, screenInfo.current_h]
     surface = display.set_mode(resolution)
+    map_width = len(map["map"])
+    map_height = len(map["map"][0])
+    x_offset = resolution[0]/2 - (map_width/2*settings["game.tileSize"])
+    y_offset = resolution[1]/2 - (map_height/2*settings["game.tileSize"])
+    map_item = []
+    players = []
+    bots = []
+
+
+
 
     def __init__(self):
         Game.__setJSON()
@@ -52,3 +64,7 @@ class Game:
         with open(path, "w") as f:
             json.dump(__setData(_data, data), f)
         klass.__setJSON()
+
+    @staticmethod
+    def access_1d_array_with_2d_index(array, i, j, row):
+        return array[(i*row)+j]

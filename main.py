@@ -1,14 +1,17 @@
+from objects.entity import Empty
 from pygame.constants import KEYDOWN, KEYUP, K_DOWN, K_ESCAPE, K_LEFT, K_RIGHT, K_UP, K_a, K_d, K_f, K_g, K_h, K_i, K_j, K_k, K_l, K_s, K_t, K_w
 from objects.player import Player
 from objects.game import Game
 from objects.cursor import Cursor
 from objects.map import MapFactory, MapRenderer
 from objects.text import Text
-from pygame import cursors, image, init, display, event, QUIT, mouse, quit, time, draw
+from pygame import init, display, event, QUIT, math, mixer, mouse, quit, time, draw, mixer
 import sys
+import math
 import time as TIME
 mapFactory = MapFactory()
 init()
+mixer.init()
 
 display.set_caption("Mega Blast")
 clock = time.Clock()
@@ -93,7 +96,7 @@ def option_form_prompt():
     Game.surface.blit(yes.text, (yes.x, yes.y))
     Game.surface.blit(no.text, (no.x, no.y))
 
-def options_menu():
+def options_menu():  # sourcery no-metrics
     global open_option_input_prompt, open_option, player_count_options, bot_count_options, win_limit_options, player_count_selected, bot_count_selected, win_limit_selected
     title = Text("Mega Blast!", size="xl", fg="white", bg="black", align="top-center")
     back = Text("Return to Main Menu", size="m", fg="red", bg="black", align="top-center", display=False)
@@ -201,8 +204,11 @@ def quit_option_menu():
     Game.surface.blit(yes.text, (yes.x, yes.y))
     Game.surface.blit(no.text, (no.x, no.y))
 
+mixer.music.load(Game.menu_music_path)
+mixer.music.set_volume(0.7)
+mixer.music.play()
 
-def main():
+def main():  # sourcery no-metrics
     global start, open_option, cursor, open_quit_option, open_option_input_prompt
     while True:
         cursor = Cursor()
@@ -317,7 +323,7 @@ def main():
                             player.idle = False
                             player.faceRight = True
                             player.frame = 0
- 
+
                     if e.type == KEYUP:
                         # UP
                         if e.key == K_w and player.id == 1:
@@ -360,17 +366,41 @@ def main():
                             player.faceRight = False
 
                         # STOPPING ANIMATION
-                        if player.id == 1 and not (player.faceUp or player.faceDown or player.faceLeft or player.faceRight):
+                        if (
+                            player.id == 1
+                            and not player.faceUp
+                            and not player.faceDown
+                            and not player.faceLeft
+                            and not player.faceRight
+                        ):
                             player.idle = True
-                        if player.id == 2 and not (player.faceUp or player.faceDown or player.faceLeft or player.faceRight):
+                        if (
+                            player.id == 2
+                            and not player.faceUp
+                            and not player.faceDown
+                            and not player.faceLeft
+                            and not player.faceRight
+                        ):
                             player.idle = True
-                        if player.id == 3 and not (player.faceUp or player.faceDown or player.faceLeft or player.faceRight):
+                        if (
+                            player.id == 3
+                            and not player.faceUp
+                            and not player.faceDown
+                            and not player.faceLeft
+                            and not player.faceRight
+                        ):
                             player.idle = True
-                        if player.id == 4 and not (player.faceUp or player.faceDown or player.faceLeft or player.faceRight):
+                        if (
+                            player.id == 4
+                            and not player.faceUp
+                            and not player.faceDown
+                            and not player.faceLeft
+                            and not player.faceRight
+                        ):
                             player.idle = True
 
         Game.surface.fill("black")
-
+        
         if start:
             mapRenderer.render()
             Game.framerate = int(clock.get_fps())
