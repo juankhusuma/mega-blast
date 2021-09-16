@@ -1,6 +1,6 @@
 from objects.stopwatch import Stopwatch
 from objects.game import Game
-from objects.entity import AnimateEntity, BombActive, BombItem
+from objects.entity import AnimateEntity, BombActive, BombItem, Explosion
 from objects.text import Text
 from pygame import Rect, image
 
@@ -23,6 +23,8 @@ class Player(AnimateEntity, Game):
         self.facingLeft = False
         self.facingRight = False
         self.timer = Stopwatch()
+        self.superBomb = True
+        self.is_bot = False
 
         [self.moveSprite.append(moveImage1) for _ in range(10)]
         [self.moveSprite.append(moveImage2) for _ in range(5)]
@@ -44,15 +46,15 @@ class Player(AnimateEntity, Game):
             self.has_bomb = False
             self.timer.reset()
             Game.bomb_items.append(BombActive(
-                (self.x-self.x_offset)/Game.settings["game.tileSize"], 
-                (self.y-self.y_offset)/Game.settings["game.tileSize"],
+                self.tile_x,
+                self.tile_y,
                 self.x_offset,
                 self.y_offset,
                 self
             ))
 
     def animate(self):
-        if self.timer.time_elapsed() > 5_000:
+        if self.timer.time_elapsed() > 1_000:
             self.has_bomb = True
         if self.idle:
             if self.frame < len(self.idleSprite) - 1:
@@ -76,7 +78,19 @@ class Player(AnimateEntity, Game):
         if self.has_bomb:
             Game.surface.blit(BombItem.sprite, (item.x, item.y))
 
+        for i in self.hit_test(self.Rect, Game.explosions):
+            if i.player != self:
+                if not self.is_bot:
+                    Game.players.remove(self)
+                else:
+                    Game.bots.remove(self)
+                i.player.kills += 1
+
 class Bot(Player):
+    def __init__(self, x, y, speed, id):
+        super().__init__(x, y, speed, id)
+        self.is_bot = True
+
     def renderIdTag(self):
         id_label = Text(str(self.id), size="xs", fg="red", bg="black", align=[self.x + self.sprite.get_width()/2, self.y], display=False)
         id_label.y -= id_label.text.get_height() + 5

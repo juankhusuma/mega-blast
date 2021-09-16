@@ -1,3 +1,4 @@
+from pygame.transform import scale
 from objects.entity import BombActive, Empty
 from pygame.constants import K_RSHIFT, KEYDOWN, KEYUP, K_DOWN, K_ESCAPE, K_LEFT, K_RIGHT, K_UP, K_a, K_d, K_f, K_g, K_h, K_i, K_j, K_k, K_l, K_q, K_r, K_s, K_t, K_u, K_w
 from objects.player import Player
@@ -5,7 +6,7 @@ from objects.game import Game
 from objects.cursor import Cursor
 from objects.map import MapFactory, MapRenderer
 from objects.text import Text
-from pygame import init, display, event, QUIT, math, mixer, mouse, quit, time, draw, mixer
+from pygame import image, init, display, event, QUIT, math, mixer, mouse, quit, time, draw, mixer
 import sys
 import math
 import time as TIME
@@ -413,7 +414,6 @@ def main():  # sourcery no-metrics
                             player.idle = True
 
         Game.surface.fill("black")
-        
         if start:
             mapRenderer.render()
             Game.framerate = int(clock.get_fps())

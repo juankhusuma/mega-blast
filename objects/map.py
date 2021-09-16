@@ -160,11 +160,11 @@ class MapRenderer(Game):
                 #         Mimic.sprite = Mimic.sprite_idle
                 Game.surface.blit(item.sprite, (item.x, item.y))
 
+        for explosion in Game.explosions:
+            explosion.animate()
+
         for bomb in Game.bomb_items:
-            if isinstance(bomb, BombItem):
-                Game.surface.blit(BombItem.sprite, (bomb.x, bomb.y))
-            elif isinstance(bomb, BombActive):
-                bomb.update()
+            bomb.update()
 
         for player in Game.players:
             for entity in Game.map_item:

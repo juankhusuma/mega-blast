@@ -67,3 +67,7 @@ class Game:
         with open(path, "w") as f:
             json.dump(__setData(_data, data), f)
         klass.__setJSON()
+
+    @classmethod
+    def change2Dto1DIndex(klass, x, y):
+        return ((x * klass.map_width) + y)

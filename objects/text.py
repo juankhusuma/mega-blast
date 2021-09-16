@@ -1,5 +1,5 @@
 from objects.game import Game
-from pygame import font, init
+from pygame import Surface, font, init, surface
 init()
 class Text(Game):
     fonts = {
@@ -19,6 +19,7 @@ class Text(Game):
         self.text = Text.fonts[kwargs["size"]].render(
             message, True, kwargs["fg"], kwargs["bg"]
         )
+        self.text.set_colorkey((0, 0, 0, 0))
         if kwargs["align"] == "top-left":
             pos = (0, 0)
         elif kwargs["align"] == "top-center":
