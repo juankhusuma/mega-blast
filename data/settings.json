@@ -1,5 +1,5 @@
 {
   "game.mapSize": 25,
   "game.tileSize": 25,
-  "game.resolution": [0, 0]
+  "game.resolution": [1000, 700]
 }

@@ -1,5 +1,5 @@
-from objects.entity import Empty
-from pygame.constants import KEYDOWN, KEYUP, K_DOWN, K_ESCAPE, K_LEFT, K_RIGHT, K_UP, K_a, K_d, K_f, K_g, K_h, K_i, K_j, K_k, K_l, K_s, K_t, K_w
+from objects.entity import BombActive, Empty
+from pygame.constants import K_RSHIFT, KEYDOWN, KEYUP, K_DOWN, K_ESCAPE, K_LEFT, K_RIGHT, K_UP, K_a, K_d, K_f, K_g, K_h, K_i, K_j, K_k, K_l, K_q, K_r, K_s, K_t, K_u, K_w
 from objects.player import Player
 from objects.game import Game
 from objects.cursor import Cursor
@@ -323,6 +323,19 @@ def main():  # sourcery no-metrics
                             player.idle = False
                             player.faceRight = True
                             player.frame = 0
+
+                        if e.key == K_q and player.id == 1:
+                            player.placeBomb()
+
+                        if e.key == K_r and player.id == 2:
+                            player.placeBomb()
+
+                        if e.key == K_u and player.id == 3:
+                            player.placeBomb()
+
+                        if e.key == K_RSHIFT and player.id == 4:
+                            player.placeBomb()
+                                
 
                     if e.type == KEYUP:
                         # UP

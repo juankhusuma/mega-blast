@@ -30,6 +30,9 @@ class Game:
     map_item = []
     players = []
     bots = []
+    bomb_items = []
+    bombs = []
+    explosions = []
 
 
 
@@ -64,7 +67,3 @@ class Game:
         with open(path, "w") as f:
             json.dump(__setData(_data, data), f)
         klass.__setJSON()
-
-    @staticmethod
-    def access_1d_array_with_2d_index(array, i, j, row):
-        return array[(i*row)+j]

@@ -1,7 +1,7 @@
 from objects.text import Text
 from pygame import image, draw
 from objects.game import Game
-from objects.entity import Box, Empty, Mimic, Wall
+from objects.entity import BombActive, BombItem, Box, Empty, Mimic, Wall
 from objects.player import Bot, Player
 import random
 import sys
@@ -24,7 +24,7 @@ class MapFactory(Game):
         self.walls = set()
         self._map = self.__generateMaze()
         print("Generating new map")
-        Game.modifyGameData("map", {"map": self._map, "test": self.test})
+        Game.modifyGameData("map", {"map": self._map})
 
     @staticmethod
     def adjacent(cell):
@@ -93,7 +93,7 @@ class MapFactory(Game):
         self.height += 2
         self.__initialize()
         self.__borderFill()
-        self.__primAlg()
+        self.__primAlg(False)
         _map = [''.join(self.maze[(i, j)] for j in range(self.width))
                 for i in range(self.height)]
         for i, row in enumerate(_map):
@@ -153,14 +153,34 @@ class MapRenderer(Game):
             elif isinstance(item, Box):
                 Game.surface.blit(Box.sprite, (item.x, item.y))
             elif isinstance(item, Mimic):
-                Game.surface.blit(Mimic.sprite, (item.x, item.y))
-        for item in Game.players:
-            item.animate()
-            item.move()
-            draw.rect(Game.surface, "red", item.Rect, 1)
+                # for player in Game.players:
+                #     if item.withinVicinity((player.x, player.y)):
+                #         Mimic.sprite = Mimic.sprite_aggrovated
+                #     else:
+                #         Mimic.sprite = Mimic.sprite_idle
+                Game.surface.blit(item.sprite, (item.x, item.y))
 
-        for item in Game.bots:
-            item.animate()
-            item.move()
-            draw.rect(Game.surface, "green", item.Rect, 1)
+        for bomb in Game.bomb_items:
+            if isinstance(bomb, BombItem):
+                Game.surface.blit(BombItem.sprite, (bomb.x, bomb.y))
+            elif isinstance(bomb, BombActive):
+                bomb.update()
+
+        for player in Game.players:
+            for entity in Game.map_item:
+                if isinstance(entity, Mimic):
+                    if entity.withinVicinity((player.x, player.y)):
+                        entity.sprite = Mimic.sprite_aggrovated
+                    else:
+                        entity.sprite = Mimic.sprite_idle
+            player.animate()
+            player.move()
+            draw.rect(Game.surface, "green", player.Rect, 1)
+
+        for bot in Game.bots:
+            bot.animate()
+            bot.move()
+            draw.rect(Game.surface, "red", bot.Rect, 1)
+
+
 

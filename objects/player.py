@@ -1,5 +1,6 @@
+from objects.stopwatch import Stopwatch
 from objects.game import Game
-from objects.entity import AnimateEntity
+from objects.entity import AnimateEntity, BombActive, BombItem
 from objects.text import Text
 from pygame import Rect, image
 
@@ -21,6 +22,7 @@ class Player(AnimateEntity, Game):
         self.facingDown = False
         self.facingLeft = False
         self.facingRight = False
+        self.timer = Stopwatch()
 
         [self.moveSprite.append(moveImage1) for _ in range(10)]
         [self.moveSprite.append(moveImage2) for _ in range(5)]
@@ -29,11 +31,29 @@ class Player(AnimateEntity, Game):
 
         self.sprite = idleImage1
         self.Rect = Rect(self.x, self.y, self.sprite.get_width(), self.sprite.get_height())
+        self.has_bomb = True
 
-    def animate(self):
+    def renderIdTag(self):
         id_label = Text(str(self.id), size="xs", fg="white", bg="black", align=[self.x + self.sprite.get_width()/2, self.y], display=False)
         id_label.y -= id_label.text.get_height() + 5
         id_label.x -= id_label.text.get_width()/2
+        Game.surface.blit(id_label.text, (id_label.x, id_label.y))
+
+    def placeBomb(self):
+        if self.has_bomb:
+            self.has_bomb = False
+            self.timer.reset()
+            Game.bomb_items.append(BombActive(
+                (self.x-self.x_offset)/Game.settings["game.tileSize"], 
+                (self.y-self.y_offset)/Game.settings["game.tileSize"],
+                self.x_offset,
+                self.y_offset,
+                self
+            ))
+
+    def animate(self):
+        if self.timer.time_elapsed() > 5_000:
+            self.has_bomb = True
         if self.idle:
             if self.frame < len(self.idleSprite) - 1:
                 self.frame += 1
@@ -47,16 +67,18 @@ class Player(AnimateEntity, Game):
                 self.frame = 0 
             self.sprite = self.moveSprite[self.frame]
         Game.surface.blit(self.sprite, (self.Rect.x, self.Rect.y))
-        Game.surface.blit(id_label.text, (id_label.x, id_label.y))
-
-
-
-        
-
+        self.renderIdTag()
+        item = BombItem(
+            (self.x-self.x_offset)/Game.settings["game.tileSize"], 
+            (self.y-self.y_offset)/Game.settings["game.tileSize"],
+            self.x_offset,
+            self.y_offset)
+        if self.has_bomb:
+            Game.surface.blit(BombItem.sprite, (item.x, item.y))
 
 class Bot(Player):
-    def __init__(self, x, y, speed, id):
-        super().__init__(x, y, speed, id)
-
-    def animate(self):
-        return super().animate()
+    def renderIdTag(self):
+        id_label = Text(str(self.id), size="xs", fg="red", bg="black", align=[self.x + self.sprite.get_width()/2, self.y], display=False)
+        id_label.y -= id_label.text.get_height() + 5
+        id_label.x -= id_label.text.get_width()/2
+        Game.surface.blit(id_label.text, (id_label.x, id_label.y))
