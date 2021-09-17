@@ -1,5 +1,5 @@
 from objects.text import Text
-from pygame import image, draw
+from pygame import Surface, image, draw
 from objects.game import Game
 from objects.entity import BombActive, BombItem, Box, Empty, Mimic, Wall
 from objects.player import Bot, Player
@@ -114,9 +114,11 @@ class MapRenderer(Game):
     def __init__(self):
         print("Map renderer initialized...")
         super().__init__()
+        self.wall_sprite = Surface((Game.resolution[0], Game.resolution[1])).convert()
         self.start()
 
     def start(self):
+        print("Started registering items...")
         Game.map_item = []
         Game.players = []
         Game.bots = []
@@ -127,10 +129,6 @@ class MapRenderer(Game):
             for j, item in enumerate(column):
                 if item == "b":
                     Game.map_item.append(Box(i, j, Game.x_offset, Game.y_offset))
-                elif item == "w":
-                    Game.map_item.append(Wall(i, j, Game.x_offset, Game.y_offset))
-                elif item == "m":
-                    Game.map_item.append(Mimic(i, j, Game.x_offset, Game.y_offset))
                 elif item == "e":
                     Game.map_item.append(Empty(i, j, Game.x_offset, Game.y_offset))
                     if space > 0:
@@ -145,12 +143,19 @@ class MapRenderer(Game):
                             Game.bots.append(Bot(i*Game.settings["game.tileSize"] + self.x_offset, ((j*Game.settings["game.tileSize"]) + self.y_offset), 5, bot_count))
                             bot_count -= 1
 
-    @staticmethod
-    def render():
+                elif item == "m":
+                    Game.map_item.append(Mimic(i, j, Game.x_offset, Game.y_offset))
+                elif item == "w":
+                    wall = Wall(i, j, Game.x_offset, Game.y_offset)
+                    self.wall_sprite.blit(Wall.sprite, (wall.x, wall.y))
+                    Game.map_item.append(wall)
+
+    def render(self):
+        Game.surface.blit(self.wall_sprite, (0, 0))
         for item in Game.map_item:
-            if isinstance(item, Wall):
-                Game.surface.blit(Wall.sprite, (item.x, item.y))
-            elif isinstance(item, Box):
+            # if isinstance(item, Wall):
+                # Game.surface.blit(Wall.sprite, (item.x, item.y))
+            if isinstance(item, Box):
                 Game.surface.blit(Box.sprite, (item.x, item.y))
             elif isinstance(item, Mimic):
                 # for player in Game.players:
@@ -175,12 +180,10 @@ class MapRenderer(Game):
                         entity.sprite = Mimic.sprite_idle
             player.animate()
             player.move()
-            draw.rect(Game.surface, "green", player.Rect, 1)
 
         for bot in Game.bots:
             bot.animate()
             bot.move()
-            draw.rect(Game.surface, "red", bot.Rect, 1)
 
 
 

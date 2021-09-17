@@ -90,7 +90,7 @@ class Empty(InanimateEntity):
 
 
 class Box(InanimateEntity):
-    sprite = scale(image.load("assets/images/box.png"),
+    sprite = scale(image.load("assets/images/box.png").convert(),
                    (InanimateEntity.tile_size, InanimateEntity.tile_size))
 
     def __str__(self):
@@ -98,7 +98,7 @@ class Box(InanimateEntity):
 
 
 class Wall(InanimateEntity):
-    sprite = scale(image.load("assets/images/wall.png"),
+    sprite = scale(image.load("assets/images/wall.png").convert(),
                    (InanimateEntity.tile_size, InanimateEntity.tile_size))
 
     def __str__(self):
@@ -106,9 +106,9 @@ class Wall(InanimateEntity):
 
 
 class Mimic(InanimateEntity):
-    sprite_idle = scale(image.load("assets/images/enemies/mimic/1.png"),
+    sprite_idle = scale(image.load("assets/images/enemies/mimic/1.png").convert(),
                         (InanimateEntity.tile_size, InanimateEntity.tile_size))
-    sprite_aggrovated = scale(image.load("assets/images/enemies/mimic/2.png"),
+    sprite_aggrovated = scale(image.load("assets/images/enemies/mimic/2.png").convert(),
                               (InanimateEntity.tile_size, InanimateEntity.tile_size))
     sprite = sprite_idle
 
@@ -120,7 +120,8 @@ class Mimic(InanimateEntity):
         return "Mimic<{}({}),{}({})>".format(self.x, self.tileX, self.y, self.tileY)
 
 class BombItem(InanimateEntity):
-    sprite = scale(image.load("assets/images/regular_bomb.png"), (int(InanimateEntity.tile_size * 0.5), int(InanimateEntity.tile_size * 0.5)))
+    sprite = scale(image.load("assets/images/regular_bomb.png").convert(), (int(InanimateEntity.tile_size * 0.5), int(InanimateEntity.tile_size * 0.5)))
+    # sprite.set_colorkey((0, 0, 0, 0))
     def __init__(self, tileX, tileY, offsetX, offsetY):
         super().__init__(tileX, tileY, offsetX, offsetY)
         self.x += (self.tile_size - BombItem.sprite.get_width())/2 
@@ -128,6 +129,8 @@ class BombItem(InanimateEntity):
         self.player = None
 
 class Explosion(InanimateEntity):
+    animations = []
+    animations += [scale(image.load("assets/images/explosions/explosion{}.png".format(j + 1)).convert(), (InanimateEntity.tile_size, InanimateEntity.tile_size)) for j in range(6)]
     def __init__(self, tileX, tileY, offsetX, offsetY, placed_by):
         super().__init__(tileX, tileY, offsetX, offsetY)
         self.timer = Stopwatch()
@@ -135,23 +138,26 @@ class Explosion(InanimateEntity):
         self.player = placed_by
         self.animations = []
         self.frame = 0
-        for i in range(6):
-            self.animations += [scale(image.load("assets/images/explosions/explosion{}.png".format(i + 1)), (InanimateEntity.tile_size, InanimateEntity.tile_size)) for _ in range(2)]
-        Explosion.sprite = self.animations[0]
+        
+        Explosion.sprite = Explosion.animations[0]
 
     def animate(self):
-        if self.frame < len(self.animations) - 1:
+        if self.frame < len(Explosion.animations) - 1:
             self.frame += 1
         else:
             self.frame = 0
-        Explosion.sprite = self.animations[self.frame]
+        Explosion.sprite = Explosion.animations[self.frame]
         Game.surface.blit(Explosion.sprite, (self.x, self.y))
         if self.timer.time_elapsed() > 200:
             Game.explosions.pop(0)
 
 
 class BombActive(InanimateEntity):
-    sprite = scale(image.load("assets/images/regular_bomb.png"), (InanimateEntity.tile_size, InanimateEntity.tile_size))
+    sprite = scale(image.load("assets/images/regular_bomb.png").convert(), (InanimateEntity.tile_size, InanimateEntity.tile_size))
+    animations = []
+    animations += [scale(image.load("assets/images/regular_bomb.png").convert(), (InanimateEntity.tile_size, InanimateEntity.tile_size)) for _ in range(10)]
+    animations += [scale(image.load("assets/images/ignited_bomb.png").convert(), (InanimateEntity.tile_size, InanimateEntity.tile_size)) for _ in range(10)]
+
     def __init__(self, tileX, tileY, offsetX, offsetY, placed_by):
         super().__init__(tileX, tileY, offsetX, offsetY)
         self.player = placed_by
@@ -160,9 +166,6 @@ class BombActive(InanimateEntity):
         self.text = Text(str(self.player.id), size="xs", fg="white", bg="black", align=[self.player.x, self.player.y], display=False)
         self.text.x += (BombActive.sprite.get_width() - self.text.text.get_width())/2
         self.text.y += (BombActive.sprite.get_height() - self.text.text.get_height())/2
-        self.animations = []
-        self.animations += [scale(image.load("assets/images/regular_bomb.png"), (InanimateEntity.tile_size, InanimateEntity.tile_size)) for _ in range(10)]
-        self.animations += [scale(image.load("assets/images/ignited_bomb.png"), (InanimateEntity.tile_size, InanimateEntity.tile_size)) for _ in range(10)]
         self.frame = 0
         self.stop_propagation = {
             "UP": False,
@@ -206,7 +209,7 @@ class BombActive(InanimateEntity):
     def explode(self):
         Game.explosions.append(Explosion(self.tileX, self.tileY, self.x_offset, self.y_offset, self.player))
         if not self.player.superBomb:
-            for i in range(3):
+            for i in range(1, 3):
                 if not self.stop_propagation["UP"]:
                     self.__add_explosion_up(i)
                 if not self.stop_propagation["DOWN"]:
@@ -216,7 +219,7 @@ class BombActive(InanimateEntity):
                 if not self.stop_propagation["RIGHT"]:
                     self.__add_explosion_right(i)
         else:
-            for i in range(5):              
+            for i in range(1, 5):              
                 if not self.stop_propagation["UP"]:
                     self.__add_explosion_up(i)
                 if not self.stop_propagation["DOWN"]:
@@ -232,11 +235,11 @@ class BombActive(InanimateEntity):
         self.stop_propagation["RIGHT"] = False
 
     def update(self):
-        if self.frame < len(self.animations) - 1:
+        if self.frame < len(BombActive.animations) - 1:
             self.frame += 1
         else:
             self.frame = 0
-        BombActive.sprite = self.animations[self.frame]
+        BombActive.sprite = BombActive.animations[self.frame]
         Game.surface.blit(BombActive.sprite, (self.x, self.y))
         Game.surface.blit(self.text.text, (self.text.x, self.text.y))
         if self.timer.time_elapsed() > 1_000:

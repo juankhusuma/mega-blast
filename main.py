@@ -6,7 +6,7 @@ from objects.game import Game
 from objects.cursor import Cursor
 from objects.map import MapFactory, MapRenderer
 from objects.text import Text
-from pygame import image, init, display, event, QUIT, math, mixer, mouse, quit, time, draw, mixer
+from pygame import init, display, event, QUIT, math, mixer, mouse, quit, time, draw, mixer
 import sys
 import math
 import time as TIME
@@ -204,10 +204,6 @@ def quit_option_menu():
             TIME.sleep(0.3)
     Game.surface.blit(yes.text, (yes.x, yes.y))
     Game.surface.blit(no.text, (no.x, no.y))
-
-mixer.music.load(Game.menu_music_path)
-mixer.music.set_volume(0.7)
-mixer.music.play()
 
 def main():  # sourcery no-metrics
     global start, open_option, cursor, open_quit_option, open_option_input_prompt
