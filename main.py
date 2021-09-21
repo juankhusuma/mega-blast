@@ -218,8 +218,8 @@ def main():  # sourcery no-metrics
                 open_option = False
                 open_quit_option = False
                 open_option_input_prompt = False
-            for player in mapRenderer.players:
-                if isinstance(player, Player):
+            for player in Game.players:
+                if not player.is_bot:
                     if e.type == KEYDOWN:
                         # UP
                         if e.key == K_w and player.id == 1:
@@ -332,8 +332,6 @@ def main():  # sourcery no-metrics
 
                         if e.key == K_RSHIFT and player.id == 4:
                             player.placeBomb()
-                                
-
                     if e.type == KEYUP:
                         # UP
                         if e.key == K_w and player.id == 1:
@@ -427,7 +425,6 @@ def main():  # sourcery no-metrics
         elif open_option:
             options_menu()
 
-
         elif open_quit_option:
             quit_option_menu()
 
@@ -435,7 +432,7 @@ def main():  # sourcery no-metrics
             main_menu()
 
         display.update()
-        clock.tick(60)
+        clock.tick(30)
 
 
 if __name__ == '__main__':

@@ -1,11 +1,11 @@
 from objects.text import Text
 from pygame import Surface, image, draw
 from objects.game import Game
-from objects.entity import BombActive, BombItem, Box, Empty, Mimic, Wall
+from objects.entity import AnimateEntity, BombActive, BombItem, Box, Empty, Mimic, Wall
 from objects.player import Bot, Player
 import random
 import sys
-
+import threading
 
 class MapFactory(Game):
     test = 0
@@ -105,7 +105,6 @@ class MapFactory(Game):
                         _map[c][d] = "m"
                     if random.randrange(1, 5) == 3 and b == "w":
                         _map[c][d] = "e"
-
         return _map
 
 
@@ -118,13 +117,14 @@ class MapRenderer(Game):
         self.start()
 
     def start(self):
+        self.wall_sprite = Surface((Game.resolution[0], Game.resolution[1])).convert()
         print("Started registering items...")
         Game.map_item = []
         Game.players = []
         Game.bots = []
         player_count = Game.gameConf["game.player.count"]
         bot_count = Game.gameConf["game.bot.count"]
-        space = 10
+        space = 15
         for i, column in enumerate(Game.map["map"]):
             for j, item in enumerate(column):
                 if item == "b":
@@ -134,13 +134,13 @@ class MapRenderer(Game):
                     if space > 0:
                         space -= 1
                     else:
-                        space = 50
+                        space = 15
                         if player_count > 0:
                             Game.players.append(Player((i*Game.settings["game.tileSize"] + self.x_offset), ((j*Game.settings["game.tileSize"]) + self.y_offset), 5, player_count))
                             player_count -= 1
                             continue
                         if bot_count > 0 and player_count == 0:
-                            Game.bots.append(Bot(i*Game.settings["game.tileSize"] + self.x_offset, ((j*Game.settings["game.tileSize"]) + self.y_offset), 5, bot_count))
+                            Game.players.append(Bot(i*Game.settings["game.tileSize"] + self.x_offset, ((j*Game.settings["game.tileSize"]) + self.y_offset), 5, bot_count))
                             bot_count -= 1
 
                 elif item == "m":
@@ -153,37 +153,25 @@ class MapRenderer(Game):
     def render(self):
         Game.surface.blit(self.wall_sprite, (0, 0))
         for item in Game.map_item:
-            # if isinstance(item, Wall):
-                # Game.surface.blit(Wall.sprite, (item.x, item.y))
             if isinstance(item, Box):
+                threading.Thread()
                 Game.surface.blit(Box.sprite, (item.x, item.y))
             elif isinstance(item, Mimic):
-                # for player in Game.players:
-                #     if item.withinVicinity((player.x, player.y)):
-                #         Mimic.sprite = Mimic.sprite_aggrovated
-                #     else:
                 #         Mimic.sprite = Mimic.sprite_idle
                 Game.surface.blit(item.sprite, (item.x, item.y))
 
-        for explosion in Game.explosions:
-            explosion.animate()
+        # Using Functional and Branchless Programming
+        [x.animate() or (isinstance(x, AnimateEntity) and x.move()) for x in Game.entites]
+        [x.animate() or x.move() for x in Game.players]
 
-        for bomb in Game.bomb_items:
-            bomb.update()
-
-        for player in Game.players:
-            for entity in Game.map_item:
-                if isinstance(entity, Mimic):
-                    if entity.withinVicinity((player.x, player.y)):
-                        entity.sprite = Mimic.sprite_aggrovated
-                    else:
-                        entity.sprite = Mimic.sprite_idle
-            player.animate()
-            player.move()
-
-        for bot in Game.bots:
-            bot.animate()
-            bot.move()
+        # for player in Game.players:
+            # for entity in Game.map_item:
+            #     if isinstance(entity, Mimic):
+            #         if entity.withinVicinity((player.x, player.y)):
+            #             entity.sprite = Mimic.sprite_aggrovated
+            #         else:
+            #             entity.sprite = Mimic.sprite_idle
+            # threading.Thread(target=player.animate).start()
 
 
 

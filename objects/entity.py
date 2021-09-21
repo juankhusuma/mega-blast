@@ -1,6 +1,6 @@
 from objects.text import Text
 from objects.game import Game
-from pygame import Rect, display, image, sprite
+from pygame import Rect, image
 from pygame.transform import scale
 from objects.stopwatch import Stopwatch
 import math
@@ -13,7 +13,6 @@ class AnimateEntity(Game):
         self.__speed = speed
         self.Rect = Rect(0, 0, 0, 0)
         self.speed = 0
-        self.__updateSpeed()
         self.sprite = None
         self.idle = False
         self.faceUp = False
@@ -25,12 +24,6 @@ class AnimateEntity(Game):
         self.kills = 0
         super().__init__()
 
-    def __updateSpeed(self):
-        if Game.framerate > 0:
-            self.speed = self.__speed * Game.settings["game.tileSize"] / Game.framerate
-        else:
-            self.speed = 0
-
     @staticmethod
     def collission_test(rect, tiles):
         return [tile for tile in tiles if rect.colliderect(tile.Rect) == 1 and not isinstance(tile, Empty)]
@@ -40,7 +33,10 @@ class AnimateEntity(Game):
         return [fire for fire in explosions if rect.colliderect(fire.Rect) == 1]
 
     def move(self):
-        self.__updateSpeed()
+        if Game.framerate > 0:
+            self.speed = self.__speed * Game.settings["game.tileSize"] / Game.framerate
+        else:
+            self.speed = 0
         if self.faceUp:
             self.y -= self.speed
         if self.faceDown:
@@ -52,7 +48,6 @@ class AnimateEntity(Game):
                 self.Rect.top  = tile.Rect.bottom
             if self.faceDown:
                 self.Rect.bottom = tile.Rect.top
-
         if self.faceLeft:
             self.x -= self.speed
         if self.faceRight:
@@ -121,7 +116,7 @@ class Mimic(InanimateEntity):
 
 class BombItem(InanimateEntity):
     sprite = scale(image.load("assets/images/regular_bomb.png").convert(), (int(InanimateEntity.tile_size * 0.5), int(InanimateEntity.tile_size * 0.5)))
-    # sprite.set_colorkey((0, 0, 0, 0))
+    sprite.set_colorkey((0, 0, 0, 0))
     def __init__(self, tileX, tileY, offsetX, offsetY):
         super().__init__(tileX, tileY, offsetX, offsetY)
         self.x += (self.tile_size - BombItem.sprite.get_width())/2 
@@ -149,7 +144,7 @@ class Explosion(InanimateEntity):
         Explosion.sprite = Explosion.animations[self.frame]
         Game.surface.blit(Explosion.sprite, (self.x, self.y))
         if self.timer.time_elapsed() > 200:
-            Game.explosions.pop(0)
+            Game.entites.pop(0)
 
 
 class BombActive(InanimateEntity):
@@ -180,7 +175,7 @@ class BombActive(InanimateEntity):
             self.stop_propagation["UP"] = True
         else:
             Game.map_item[Game.change2Dto1DIndex(self.tileX, self.tileY - i)] = Empty(self.tileX, self.tileY - i, self.x_offset, self.y_offset)
-            Game.explosions.append(Explosion(self.tileX, self.tileY - i, self.x_offset, self.y_offset, self.player)) # Up
+            Game.entites.append(Explosion(self.tileX, self.tileY - i, self.x_offset, self.y_offset, self.player)) # Up
 
     def __add_explosion_down(self, i):
         item = Game.map_item[Game.change2Dto1DIndex(self.tileX, self.tileY + i)]
@@ -188,7 +183,7 @@ class BombActive(InanimateEntity):
             self.stop_propagation["DOWN"] = True
         else:
             Game.map_item[Game.change2Dto1DIndex(self.tileX, self.tileY + i)] = Empty(self.tileX, self.tileY + i, self.x_offset, self.y_offset)
-            Game.explosions.append(Explosion(self.tileX, self.tileY + i, self.x_offset, self.y_offset, self.player)) # Down
+            Game.entites.append(Explosion(self.tileX, self.tileY + i, self.x_offset, self.y_offset, self.player)) # Down
 
     def __add_explosion_left(self, i):
         item = Game.map_item[Game.change2Dto1DIndex(self.tileX - i, self.tileY)]
@@ -196,7 +191,7 @@ class BombActive(InanimateEntity):
             self.stop_propagation["LEFT"] = True
         else:
             Game.map_item[Game.change2Dto1DIndex(self.tileX - i, self.tileY)] = Empty(self.tileX - i, self.tileY, self.x_offset, self.y_offset)
-            Game.explosions.append(Explosion(self.tileX - i, self.tileY, self.x_offset, self.y_offset, self.player)) # Left
+            Game.entites.append(Explosion(self.tileX - i, self.tileY, self.x_offset, self.y_offset, self.player)) # Left
 
     def __add_explosion_right(self, i):
         item = Game.map_item[Game.change2Dto1DIndex(self.tileX + i, self.tileY)]
@@ -204,10 +199,10 @@ class BombActive(InanimateEntity):
             self.stop_propagation["RIGHT"] = True
         else:
             Game.map_item[Game.change2Dto1DIndex(self.tileX + i, self.tileY)] = Empty(self.tileX + i, self.tileY, self.x_offset, self.y_offset)
-            Game.explosions.append(Explosion(self.tileX + i, self.tileY, self.x_offset, self.y_offset, self.player)) # Right
+            Game.entites.append(Explosion(self.tileX + i, self.tileY, self.x_offset, self.y_offset, self.player)) # Right
 
     def explode(self):
-        Game.explosions.append(Explosion(self.tileX, self.tileY, self.x_offset, self.y_offset, self.player))
+        Game.entites.append(Explosion(self.tileX, self.tileY, self.x_offset, self.y_offset, self.player))
         if not self.player.superBomb:
             for i in range(1, 3):
                 if not self.stop_propagation["UP"]:
@@ -228,13 +223,13 @@ class BombActive(InanimateEntity):
                     self.__add_explosion_left(i)
                 if not self.stop_propagation["RIGHT"]:
                     self.__add_explosion_right(i)
-        Game.bomb_items.pop(0)
+        Game.entites.pop(0)
         self.stop_propagation["UP"] = False
         self.stop_propagation["DOWN"] = False
         self.stop_propagation["LEFT"] = False
         self.stop_propagation["RIGHT"] = False
 
-    def update(self):
+    def animate(self):
         if self.frame < len(BombActive.animations) - 1:
             self.frame += 1
         else:

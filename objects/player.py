@@ -7,20 +7,44 @@ from pygame import Rect, image
 class Player(AnimateEntity, Game):
     animations = {
         1: {
-            "move": [* [image.load("assets/images/player1/move/move1.png").convert() for _ in range(10)], * [image.load("assets/images/player1/move/move2.png").convert() for _ in range(5)]],
-            "idle": [* [image.load("assets/images/player1/idle/idle1.png").convert() for _ in range(20)], * [image.load("assets/images/player1/idle/idle6.png").convert() for _ in range(10)]]
+            "move": [
+                * [image.load("assets/images/player1/move/move1.png").convert() for _ in range(5)], 
+                * [image.load("assets/images/player1/move/move2.png").convert() for _ in range(2)]
+                ],
+            "idle": [
+                * [image.load("assets/images/player1/idle/idle1.png").convert() for _ in range(10)], 
+                * [image.load("assets/images/player1/idle/idle6.png").convert() for _ in range(5)]
+                ]
         },
         2: {
-            "move": [* [image.load("assets/images/player2/move/move1.png").convert() for _ in range(10)], * [image.load("assets/images/player2/move/move2.png").convert() for _ in range(5)]],
-            "idle": [* [image.load("assets/images/player2/idle/idle1.png").convert() for _ in range(20)], * [image.load("assets/images/player2/idle/idle6.png").convert() for _ in range(10)]]
+            "move": [
+                * [image.load("assets/images/player2/move/move1.png").convert() for _ in range(5)],
+                * [image.load("assets/images/player2/move/move2.png").convert() for _ in range(2)]
+                ],
+            "idle": [
+                * [image.load("assets/images/player2/idle/idle1.png").convert() for _ in range(10)],
+                * [image.load("assets/images/player2/idle/idle6.png").convert() for _ in range(5)]
+                ]
         },
         3: {
-            "move": [* [image.load("assets/images/player3/move/move1.png").convert() for _ in range(10)], * [image.load("assets/images/player3/move/move2.png").convert() for _ in range(5)]],
-            "idle": [* [image.load("assets/images/player3/idle/idle1.png").convert() for _ in range(20)], * [image.load("assets/images/player3/idle/idle6.png").convert() for _ in range(10)]]
+            "move": [
+                * [image.load("assets/images/player3/move/move1.png").convert() for _ in range(5)], 
+                * [image.load("assets/images/player3/move/move2.png").convert() for _ in range(2)]
+                ],
+            "idle": [
+                * [image.load("assets/images/player3/idle/idle1.png").convert() for _ in range(10)], 
+                * [image.load("assets/images/player3/idle/idle6.png").convert() for _ in range(5)]
+                ]
         },
         4: {
-            "move": [* [image.load("assets/images/player4/move/move1.png").convert() for _ in range(10)], * [image.load("assets/images/player4/move/move2.png").convert() for _ in range(5)]],
-            "idle": [* [image.load("assets/images/player4/idle/idle1.png").convert() for _ in range(20)], * [image.load("assets/images/player4/idle/idle6.png").convert() for _ in range(10)]]
+            "move": [
+                * [image.load("assets/images/player4/move/move1.png").convert() for _ in range(5)], 
+                * [image.load("assets/images/player4/move/move2.png").convert() for _ in range(2)]
+                ],
+            "idle": [
+                * [image.load("assets/images/player4/idle/idle1.png").convert() for _ in range(10)], 
+                * [image.load("assets/images/player4/idle/idle6.png").convert() for _ in range(5)]
+                ]
         },
     }
     def __init__(self, x, y, speed, id):
@@ -55,7 +79,7 @@ class Player(AnimateEntity, Game):
         if self.has_bomb:
             self.has_bomb = False
             self.timer.reset()
-            Game.bomb_items.append(BombActive(
+            Game.entites.append(BombActive(
                 self.tile_x,
                 self.tile_y,
                 self.x_offset,
@@ -64,8 +88,17 @@ class Player(AnimateEntity, Game):
             ))
 
     def animate(self):
+
+        # Handle bomb placement
         if self.timer.time_elapsed() > 1_000:
             self.has_bomb = True
+        item = BombItem(
+            (self.x-self.x_offset)/Game.settings["game.tileSize"], 
+            (self.y-self.y_offset)/Game.settings["game.tileSize"],
+            self.x_offset,
+            self.y_offset)
+
+        # Animations
         if self.idle:
             if self.frame < len(self.idleAnimation) - 1:
                 self.frame += 1
@@ -78,22 +111,16 @@ class Player(AnimateEntity, Game):
             else:
                 self.frame = 0 
             self.sprite = self.moveAnimation[self.frame]
+
         Game.surface.blit(self.sprite, (self.Rect.x, self.Rect.y))
-        self.renderIdTag()
-        item = BombItem(
-            (self.x-self.x_offset)/Game.settings["game.tileSize"], 
-            (self.y-self.y_offset)/Game.settings["game.tileSize"],
-            self.x_offset,
-            self.y_offset)
         if self.has_bomb:
             Game.surface.blit(BombItem.sprite, (item.x, item.y))
 
-        for i in self.hit_test(self.Rect, Game.explosions):
+        self.renderIdTag() # Number tag
+        
+        for i in self.hit_test(self.Rect, filter(lambda x: isinstance(x, Explosion), Game.entites)):
             if i.player != self:
-                if not self.is_bot:
-                    Game.players.remove(self)
-                else:
-                    Game.bots.remove(self)
+                Game.players.remove(self)
                 i.player.kills += 1
 
 class Bot(Player):

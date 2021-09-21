@@ -1,5 +1,5 @@
 import json
-from pygame import display, init, time, mixer
+from pygame import display, init, time
 init()
 
 class Game:
@@ -28,11 +28,8 @@ class Game:
     x_offset = resolution[0]/2 - (map_width/2*settings["game.tileSize"])
     y_offset = resolution[1]/2 - (map_height/2*settings["game.tileSize"])
     map_item = []
+    entites = []
     players = []
-    bots = []
-    bomb_items = []
-    bombs = []
-    explosions = []
 
 
 
