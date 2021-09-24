@@ -31,9 +31,6 @@ class Game:
     entites = []
     players = []
 
-
-
-
     def __init__(self):
         Game.__setJSON()
 

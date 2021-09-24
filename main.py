@@ -1,14 +1,11 @@
 from pygame.transform import scale
-from objects.entity import BombActive, Empty
 from pygame.constants import K_RSHIFT, KEYDOWN, KEYUP, K_DOWN, K_ESCAPE, K_LEFT, K_RIGHT, K_UP, K_a, K_d, K_f, K_g, K_h, K_i, K_j, K_k, K_l, K_q, K_r, K_s, K_t, K_u, K_w
-from objects.player import Player
 from objects.game import Game
 from objects.cursor import Cursor
 from objects.map import MapFactory, MapRenderer
 from objects.text import Text
 from pygame import init, display, event, QUIT, math, mixer, mouse, quit, time, draw, mixer
 import sys
-import math
 import time as TIME
 mapFactory = MapFactory()
 init()
@@ -418,16 +415,12 @@ def main():  # sourcery no-metrics
                 if mouse.get_pressed()[0]:
                     start = False
                     TIME.sleep(0.3)
-
         elif open_option_input_prompt:
             option_form_prompt()
-
         elif open_option:
             options_menu()
-
         elif open_quit_option:
             quit_option_menu()
-
         else:
             main_menu()
 

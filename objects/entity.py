@@ -22,6 +22,7 @@ class AnimateEntity(Game):
         self.moveSprite = []
         self.idleSprite = []
         self.kills = 0
+        self.frame = 0
         super().__init__()
 
     @staticmethod
@@ -106,6 +107,9 @@ class Mimic(InanimateEntity):
     sprite_aggrovated = scale(image.load("assets/images/enemies/mimic/2.png").convert(),
                               (InanimateEntity.tile_size, InanimateEntity.tile_size))
     sprite = sprite_idle
+
+    def aggrovated(self):
+        Mimic.sprite = Mimic.sprite_aggrovated
 
     def withinVicinity(self, pos):
         [x, y] = pos

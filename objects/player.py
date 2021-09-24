@@ -4,7 +4,7 @@ from objects.entity import AnimateEntity, BombActive, BombItem, Explosion
 from objects.text import Text
 from pygame import Rect, image
 
-class Player(AnimateEntity, Game):
+class Player(AnimateEntity):
     animations = {
         1: {
             "move": [
@@ -49,9 +49,8 @@ class Player(AnimateEntity, Game):
     }
     def __init__(self, x, y, speed, id):
         super().__init__(x, y, speed)
-
+        
         self.id = id
-        self.frame = 0
         self.bomb_count = 3
 
         self.idle = True
@@ -64,9 +63,9 @@ class Player(AnimateEntity, Game):
         self.is_bot = False
         self.idleAnimation = Player.animations[id]["idle"]
         self.moveAnimation = Player.animations[id]["move"]
-
+        self.kills = 0
         self.sprite = self.idleAnimation[0]
-        self.Rect = Rect(self.x, self.y, self.sprite.get_width(), self.sprite.get_height())
+        self.Rect = Rect(self.x+3, self.y+3, self.sprite.get_width()-3, self.sprite.get_height()-3)
         self.has_bomb = True
 
     def renderIdTag(self):
@@ -111,6 +110,7 @@ class Player(AnimateEntity, Game):
             else:
                 self.frame = 0 
             self.sprite = self.moveAnimation[self.frame]
+        self.sprite.set_colorkey((0, 0, 0, 0))
 
         Game.surface.blit(self.sprite, (self.Rect.x, self.Rect.y))
         if self.has_bomb:
@@ -120,9 +120,9 @@ class Player(AnimateEntity, Game):
         
         for i in self.hit_test(self.Rect, filter(lambda x: isinstance(x, Explosion), Game.entites)):
             if i.player != self:
+                print(self.id)
                 Game.players.remove(self)
                 i.player.kills += 1
-
 class Bot(Player):
     def __init__(self, x, y, speed, id):
         super().__init__(x, y, speed, id)
