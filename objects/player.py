@@ -1,3 +1,4 @@
+import math
 from os import path
 from numpy import tile
 from pygame.transform import scale
@@ -69,6 +70,8 @@ class Player(AnimateEntity):
         self.noclip_timer = Stopwatch()
         self.noClip = False 
         self.is_bot = False
+        if len(Game.players) > 0:
+            self.target = random.choice(Game.players)
         self.idleAnimation = Player.animations[id]["idle"]
         self.moveAnimation = Player.animations[id]["move"]
         self.kills = 0
@@ -105,7 +108,7 @@ class Player(AnimateEntity):
             isinstance(Game.map_item[Game.change2Dto1DIndex(self.tile_x, self.tile_y - 1)], Box)
         ): self.placeBomb()
         else:
-            x, y = self.get_nearest_player()
+            x, y = self.target.x, self.target.y
             if x > self.x:
                 self.faceRight = True
             elif x < self.x:
@@ -117,11 +120,15 @@ class Player(AnimateEntity):
 
             self.move()
             self.faceUp, self.faceDown, self.faceLeft, self.faceRight = False, False, False, False
+        if math.sqrt((self.x-self.target.x)**2 + (self.y-self.target.y)**2) < 50:
+            self.placeBomb()
 
 
     def animate(self):
         if self.is_bot:
             self.moveBot()
+            if not self.target:
+                self.target = random.choice(Game.players)
         
         # Handle bomb placement
         if self.timer.time_elapsed() > 3_000:
@@ -160,6 +167,11 @@ class Player(AnimateEntity):
             if i.player != self:
                 try: # Sometimes the explosion accidentally delete a player twice, this is a simple fix for that
                     Game.players.remove(self)
+                    for player in Game.players:
+                        if player.is_bot:
+                            player.target = random.choice(Game.players)
+                            while player.target == player:
+                                player.target = random.choice(Game.players)
                     i.player.kills += 1
                 except:
                     pass

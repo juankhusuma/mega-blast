@@ -1,7 +1,7 @@
 from objects.enemies import Enemies, Harpies, Hunter
 from pygame import Surface, image
 from objects.game import Game
-from objects.entity import AnimateEntity, Box, Empty, Mimic, Wall, PowerUp, Speed2x, SuperExplosive, NoClip 
+from objects.entity import AnimateEntity, Box, Empty, Wall, PowerUp, Speed2x, SuperExplosive, NoClip 
 from objects.player import Player
 import random
 import sys
@@ -100,8 +100,8 @@ class MapFactory(Game):
         for c, a in enumerate(_map):
             for d, b in enumerate(a):
                 if c > 0 and c < len(_map) - 1 and d > 0 and d < len(a) - 1:
-                    if random.randrange(1, 40) == 4 and b == "w":
-                        _map[c][d] = "m"
+                    # if random.randrange(1, 40) == 4 and b == "w":
+                    #     _map[c][d] = "m"
                     if random.randrange(1, 5) == 3 and b == "w":
                         _map[c][d] = "e"
                     if random.randrange(1, 60) == 2 and b == "e":
@@ -176,8 +176,8 @@ class MapRenderer(Game):
                                         1.5
                                     ))
                                 continue
-                elif item == "m":
-                    Game.map_item.append(Mimic(i, j, Game.x_offset, Game.y_offset))
+                # elif item == "m":
+                #     Game.map_item.append(Mimic(i, j, Game.x_offset, Game.y_offset))
                 elif item == "nc":
                     Game.map_item.append(NoClip(i, j, Game.x_offset, Game.y_offset))
                 elif item == "sb":
@@ -194,8 +194,8 @@ class MapRenderer(Game):
         for item in Game.map_item:
             if isinstance(item, Box):
                 Game.surface.blit(Box.sprite, (item.x, item.y))
-            elif isinstance(item, Mimic):
-                Game.surface.blit(item.sprite, (item.x, item.y))
+            # elif isinstance(item, Mimic):
+            #     Game.surface.blit(item.sprite, (item.x, item.y))
             elif isinstance(item, PowerUp):
                 item.update()
 
@@ -203,10 +203,6 @@ class MapRenderer(Game):
         [player.animate() or player.move() for player in Game.players]
         [enemy.animate() for enemy in Game.enemies]
 
-        for player in Game.players:
-            for entity in Game.map_item:
-                if isinstance(entity, Mimic):
-                    if entity.withinVicinity((player.x, player.y)):
-                        entity.sprite = Mimic.sprite_aggrovated
-                    else:
-                        entity.sprite = Mimic.sprite_idle
+        # for entity in Game.map_item:
+        #     if isinstance(entity, Mimic):
+        #         entity.update()

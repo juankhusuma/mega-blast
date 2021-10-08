@@ -193,37 +193,97 @@ class Wall(InanimateEntity):
         return "Wall<{}({}),{}({})>".format(self.x, self.tileX, self.y, self.tileY)
 
 
-class Mimic(InanimateEntity):
-    def __init__(self, tileX, tileY, offsetX, offsetY):
-        super().__init__(tileX, tileY, offsetX, offsetY)
-        self.has_bomb = True
+# class Mimic(InanimateEntity):
+#     def __init__(self, tileX, tileY, offsetX, offsetY):
+#         super().__init__(tileX, tileY, offsetX, offsetY)
+#         self.has_bomb = True
+#         self.stop_propagation = {
+#             "UP": False,
+#             "DOWN": False,
+#             "LEFT": False,
+#             "RIGHT": False,
+#         }
+#         self.id = 999
 
-    sprite_idle = scale(image.load("assets/images/enemies/mimic/1.png").convert(),
-                        (InanimateEntity.tile_size, InanimateEntity.tile_size))
-    sprite_aggrovated = scale(image.load("assets/images/enemies/mimic/2.png").convert(),
-                              (InanimateEntity.tile_size, InanimateEntity.tile_size))
-    sprite = sprite_idle
 
-    def aggrovated(self):
-        Mimic.sprite = Mimic.sprite_aggrovated
+#     sprite_idle = scale(image.load("assets/images/enemies/mimic/1.png").convert(),
+#                         (InanimateEntity.tile_size, InanimateEntity.tile_size))
+#     sprite_aggrovated = scale(image.load("assets/images/enemies/mimic/2.png").convert(),
+#                               (InanimateEntity.tile_size, InanimateEntity.tile_size))
+#     sprite = sprite_idle
+#     explode_timer = None
 
-    def placeBomb(self):
-        if self.has_bomb:
-            self.has_bomb = False
-            Game.entities.append(BombActive(
-                self.tile_x,
-                self.tile_y,
-                self.x_offset,
-                self.y_offset,
-                self
-            ))
+#     def __add_explosion_up(self, i):
+#         item = Game.map_item[Game.change2Dto1DIndex(self.tileX, self.tileY - i)]
+#         if isinstance(item, (Wall, PowerUp)):
+#             self.stop_propagation["UP"] = True
+#         else:
+#             Game.map_item[Game.change2Dto1DIndex(self.tileX, self.tileY - i)] = Empty(self.tileX, self.tileY - i, self.x_offset, self.y_offset)
+#             Game.entities.append(Explosion(self.tileX, self.tileY - i, self.x_offset, self.y_offset, self)) # Up
 
-    def withinVicinity(self, pos):
-        [x, y] = pos
-        return math.sqrt((self.x - x)**2 + (self.y-y)**2 )<= 50
+#     def __add_explosion_down(self, i):
+#         item = Game.map_item[Game.change2Dto1DIndex(self.tileX, self.tileY + i)]
+#         if isinstance(item, (Wall, PowerUp)):
+#             self.stop_propagation["DOWN"] = True
+#         else:
+#             Game.map_item[Game.change2Dto1DIndex(self.tileX, self.tileY + i)] = Empty(self.tileX, self.tileY + i, self.x_offset, self.y_offset)
+#             Game.entities.append(Explosion(self.tileX, self.tileY + i, self.x_offset, self.y_offset, self)) # Down
 
-    def __str__(self):
-        return "Mimic<{}({}),{}({})>".format(self.x, self.tileX, self.y, self.tileY)
+#     def __add_explosion_left(self, i):
+#         item = Game.map_item[Game.change2Dto1DIndex(self.tileX - i, self.tileY)]
+#         if isinstance(item, (Wall, PowerUp)):
+#             self.stop_propagation["LEFT"] = True
+#         else:
+#             Game.map_item[Game.change2Dto1DIndex(self.tileX - i, self.tileY)] = Empty(self.tileX - i, self.tileY, self.x_offset, self.y_offset)
+#             Game.entities.append(Explosion(self.tileX - i, self.tileY, self.x_offset, self.y_offset, self)) # Left
+
+#     def __add_explosion_right(self, i):
+#         item = Game.map_item[Game.change2Dto1DIndex(self.tileX + i, self.tileY)]
+#         if isinstance(item, (Wall, PowerUp)):
+#             self.stop_propagation["RIGHT"] = True
+#         else:
+#             Game.map_item[Game.change2Dto1DIndex(self.tileX + i, self.tileY)] = Empty(self.tileX + i, self.tileY, self.x_offset, self.y_offset)
+#             Game.entities.append(Explosion(self.tileX + i, self.tileY, self.x_offset, self.y_offset, self)) # Right
+
+#     def get_distance(self, pos):
+#         x, y = pos
+#         return math.sqrt((x - self.x)**2 + (y - self.y)**2)
+
+#     def get_nearest_player(self):
+#         nearest_player_distance = float("inf")
+#         for player in Game.players:
+#             player_distance = self.get_distance((player.x, player.y)) 
+#             if player_distance < nearest_player_distance:
+#                 nearest_player_distance = player_distance
+#             return nearest_player_distance
+
+#     def explode(self):
+#         Game.entities.append(Explosion(self.tileX, self.tileY, self.x_offset, self.y_offset, self))
+#         for i in range(1, 3):
+#             if not self.stop_propagation["UP"]:
+#                 self.__add_explosion_up(i)
+#             if not self.stop_propagation["DOWN"]:
+#                 self.__add_explosion_down(i)
+#             if not self.stop_propagation["LEFT"]:
+#                 self.__add_explosion_left(i)
+#             if not self.stop_propagation["RIGHT"]:
+#                 self.__add_explosion_right(i)
+#         Game.map_item[Game.change2Dto1DIndex(self.tileX, self.tileY)] = Empty(self.tileX, self.tileY, self.x_offset, self.y_offset)
+#         self.stop_propagation["UP"] = False
+#         self.stop_propagation["DOWN"] = False
+#         self.stop_propagation["LEFT"] = False
+#         self.stop_propagation["RIGHT"] = False
+
+#     def update(self):
+#         if self.get_nearest_player() < 30:
+#             self.explode_timer = Stopwatch()
+#             self.sprite = Mimic.sprite_aggrovated
+#             if self.explode_timer.time_elapsed() > 2000:
+#                 self.explode()
+#             Game.surface.blit(self.sprite, (self.x, self.y))
+
+#     def __str__(self):
+#         return "Mimic<{}({}),{}({})>".format(self.x, self.tileX, self.y, self.tileY)
 
 class BombItem(InanimateEntity):
     ignited_sprite = scale(image.load("assets/images/ignited_bomb.png").convert(), (int(InanimateEntity.tile_size * 0.5), int(InanimateEntity.tile_size * 0.5)))
