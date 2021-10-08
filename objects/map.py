@@ -1,9 +1,8 @@
-from objects.enemies import Harpies, Hunter
-from objects.text import Text
-from pygame import Surface, image, draw
+from objects.enemies import Enemies, Harpies, Hunter
+from pygame import Surface, image
 from objects.game import Game
-from objects.entity import AnimateEntity, BombActive, BombItem, Box, Empty, Mimic, Wall
-from objects.player import Bot, Player
+from objects.entity import AnimateEntity, Box, Empty, Mimic, Wall, PowerUp, Speed2x, SuperExplosive, NoClip 
+from objects.player import Player
 import random
 import sys
 
@@ -105,6 +104,12 @@ class MapFactory(Game):
                         _map[c][d] = "m"
                     if random.randrange(1, 5) == 3 and b == "w":
                         _map[c][d] = "e"
+                    if random.randrange(1, 60) == 2 and b == "e":
+                        _map[c][d] = "sb" # Speed Boost
+                    if random.randrange(1, 60) == 2 and b == "e":
+                        _map[c][d] = "ub" # Ultra Bomb
+                    if random.randrange(1, 60) == 5 and b == "e":
+                        _map[c][d] = "nc" # No Clip
         return _map
 
 
@@ -121,11 +126,12 @@ class MapRenderer(Game):
         print("Started registering items...")
         Game.map_item = []
         Game.players = []
-        Game.bots = []
-        player_count = Game.gameConf["game.player.count"]
-        bot_count = Game.gameConf["game.bot.count"]
-        harpies_count = 1
-        hunter_count = 1
+        Game.enemies = []
+        Game.entities = []
+        player_limit = Game.gameConf["game.player.count"]
+        player_count = 4
+        harpies_count = 2
+        hunter_count = 2
         space = 15
         for i, column in enumerate(Game.map["map"]):
             for j, item in enumerate(column):
@@ -136,48 +142,48 @@ class MapRenderer(Game):
                     if space > 0:
                         space -= 1
                     else:
-                        space = 15
+                        space = 20
                         if player_count > 0:
-                            Game.players.append(
-                                Player(
-                                    (i*Game.settings["game.tileSize"] + self.x_offset), 
-                                    ((j*Game.settings["game.tileSize"]) + self.y_offset), 
-                                    Game.settings["game.playerSpeed"], 
-                                    player_count
-                                ))
+                            player = Player(
+                                        (i*Game.settings["game.tileSize"] + self.x_offset), 
+                                        ((j*Game.settings["game.tileSize"]) + self.y_offset), 
+                                        Game.settings["game.playerSpeed"],
+                                        player_count
+                                    )
+                            if player_limit == 0:
+                                player.is_bot = True
+                            else:
+                                player_limit -= 1   
+                            Game.players.append(player)
                             player_count -= 1
                             continue
-                        if bot_count > 0 and player_count == 0:
-                            Game.players.append(
-                                Bot(
-                                    i*Game.settings["game.tileSize"] + self.x_offset, 
-                                    ((j*Game.settings["game.tileSize"]) + self.y_offset), 
-                                    Game.settings["game.playerSpeed"], bot_count
-                                ))
-
-                            bot_count -= 1
-                        if bot_count == 0 and player_count == 0:
+                        if player_count == 0:
                             if harpies_count > 0:
                                 harpies_count -= 1
-                                Game.entites.append(
+                                Game.enemies.append(
                                     Harpies(
                                         i*Game.settings["game.tileSize"] + self.x_offset, 
                                         ((j*Game.settings["game.tileSize"]) + self.y_offset),
                                         1
-                                    )
-                                )
+                                    ))
+                                continue
                             elif hunter_count > 0 and harpies_count == 0:
-                                Game.entites.append(
+                                hunter_count -= 1
+                                Game.enemies.append(
                                     Hunter(
                                         i*Game.settings["game.tileSize"] + self.x_offset, 
                                         ((j*Game.settings["game.tileSize"]) + self.y_offset),
                                         1.5
                                     ))
-
-
-
+                                continue
                 elif item == "m":
                     Game.map_item.append(Mimic(i, j, Game.x_offset, Game.y_offset))
+                elif item == "nc":
+                    Game.map_item.append(NoClip(i, j, Game.x_offset, Game.y_offset))
+                elif item == "sb":
+                    Game.map_item.append(Speed2x(i, j, Game.x_offset, Game.y_offset))
+                elif item == "ub":
+                    Game.map_item.append(SuperExplosive(i, j, Game.x_offset, Game.y_offset))
                 elif item == "w":
                     wall = Wall(i, j, Game.x_offset, Game.y_offset)
                     self.wall_sprite.blit(Wall.sprite, (wall.x, wall.y))
@@ -190,10 +196,12 @@ class MapRenderer(Game):
                 Game.surface.blit(Box.sprite, (item.x, item.y))
             elif isinstance(item, Mimic):
                 Game.surface.blit(item.sprite, (item.x, item.y))
+            elif isinstance(item, PowerUp):
+                item.update()
 
-        # Using Functional and Branchless Programming
-        [x.animate() or (isinstance(x, AnimateEntity) and x.move()) for x in Game.entites]
-        [x.animate() or x.move() for x in Game.players]
+        [entity.animate() or (isinstance(entity, AnimateEntity) and entity.move()) for entity in Game.entities]
+        [player.animate() or player.move() for player in Game.players]
+        [enemy.animate() for enemy in Game.enemies]
 
         for player in Game.players:
             for entity in Game.map_item:
@@ -202,6 +210,3 @@ class MapRenderer(Game):
                         entity.sprite = Mimic.sprite_aggrovated
                     else:
                         entity.sprite = Mimic.sprite_idle
-
-
-

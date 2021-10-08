@@ -28,8 +28,9 @@ class Game:
     x_offset = resolution[0]/2 - (map_width/2*settings["game.tileSize"])
     y_offset = resolution[1]/2 - (map_height/2*settings["game.tileSize"])
     map_item = []
-    entites = []
+    entities = []
     players = []
+    enemies = []
 
     def __init__(self):
         Game.__setJSON()

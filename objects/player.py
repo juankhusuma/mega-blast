@@ -1,9 +1,12 @@
+from os import path
+from numpy import tile
+from pygame.transform import scale
 from objects.stopwatch import Stopwatch
 from objects.game import Game
-from objects.entity import AnimateEntity, BombActive, BombItem, Explosion
+from objects.entity import AnimateEntity, BombActive, BombItem, Box, Explosion, InanimateEntity, Wall
 from objects.text import Text
 from pygame import Rect, image
-
+import random
 class Player(AnimateEntity):
     animations = {
         1: {
@@ -49,9 +52,12 @@ class Player(AnimateEntity):
     }
     def __init__(self, x, y, speed, id):
         super().__init__(x, y, speed)
-        
+        self.prev_tile = [self.tile_x, self.tile_y] 
         self.id = id
-        self.bomb_count = 3
+
+        self.super_bomb_limit = 0
+        self.speed_boost_limit = 0
+        self.noclip_time_limit = 0
 
         self.idle = True
         self.facingUp = False
@@ -59,7 +65,9 @@ class Player(AnimateEntity):
         self.facingLeft = False
         self.facingRight = False
         self.timer = Stopwatch()
-        self.superBomb = True
+        self.speed_timer = Stopwatch()
+        self.noclip_timer = Stopwatch()
+        self.noClip = False 
         self.is_bot = False
         self.idleAnimation = Player.animations[id]["idle"]
         self.moveAnimation = Player.animations[id]["move"]
@@ -69,7 +77,10 @@ class Player(AnimateEntity):
         self.has_bomb = True
 
     def renderIdTag(self):
-        id_label = Text(str(self.id), size="xs", fg="white", bg="black", align=[self.x + self.sprite.get_width()/2, self.y], display=False)
+        if not self.is_bot:
+            id_label = Text(str(self.id), size="xs", fg="white", bg="black", align=[self.x + self.sprite.get_width()/2, self.y], display=False)
+        else: 
+            id_label = Text(str(self.id), size="xs", fg="red", bg="black", align=[self.x + self.sprite.get_width()/2, self.y], display=False)
         id_label.y -= id_label.text.get_height() + 5
         id_label.x -= id_label.text.get_width()/2
         Game.surface.blit(id_label.text, (id_label.x, id_label.y))
@@ -78,7 +89,7 @@ class Player(AnimateEntity):
         if self.has_bomb:
             self.has_bomb = False
             self.timer.reset()
-            Game.entites.append(BombActive(
+            Game.entities.append(BombActive(
                 self.tile_x,
                 self.tile_y,
                 self.x_offset,
@@ -86,10 +97,34 @@ class Player(AnimateEntity):
                 self
             ))
 
-    def animate(self):
+    def moveBot(self):
+        if (
+            isinstance(Game.map_item[Game.change2Dto1DIndex(self.tile_x + 1, self.tile_y)], Box) or
+            isinstance(Game.map_item[Game.change2Dto1DIndex(self.tile_x - 1, self.tile_y)], Box) or
+            isinstance(Game.map_item[Game.change2Dto1DIndex(self.tile_x, self.tile_y + 1)], Box) or
+            isinstance(Game.map_item[Game.change2Dto1DIndex(self.tile_x, self.tile_y - 1)], Box)
+        ): self.placeBomb()
+        else:
+            x, y = self.get_nearest_player()
+            if x > self.x:
+                self.faceRight = True
+            elif x < self.x:
+                self.faceLeft = True
+            if y > self.y:
+                self.faceUp = True
+            elif y < self.y:
+                self.faceDown = True
 
+            self.move()
+            self.faceUp, self.faceDown, self.faceLeft, self.faceRight = False, False, False, False
+
+
+    def animate(self):
+        if self.is_bot:
+            self.moveBot()
+        
         # Handle bomb placement
-        if self.timer.time_elapsed() > 1_000:
+        if self.timer.time_elapsed() > 3_000:
             self.has_bomb = True
         item = BombItem(
             (self.x-self.x_offset)/Game.settings["game.tileSize"], 
@@ -114,22 +149,58 @@ class Player(AnimateEntity):
 
         Game.surface.blit(self.sprite, (self.Rect.x, self.Rect.y))
         if self.has_bomb:
-            Game.surface.blit(BombItem.sprite, (item.x, item.y))
+            if self.super_bomb_limit > 0:
+                Game.surface.blit(BombItem.ignited_sprite, (item.x, item.y)) 
+            else:
+                Game.surface.blit(BombItem.sprite, (item.x, item.y))
 
         self.renderIdTag() # Number tag
         
-        for i in self.hit_test(self.Rect, filter(lambda x: isinstance(x, Explosion), Game.entites)):
+        for i in self.hit_test(self.Rect, filter(lambda x: isinstance(x, Explosion), Game.entities)):
             if i.player != self:
-                print(self.id)
-                Game.players.remove(self)
-                i.player.kills += 1
-class Bot(Player):
-    def __init__(self, x, y, speed, id):
-        super().__init__(x, y, speed, id)
-        self.is_bot = True
+                try: # Sometimes the explosion accidentally delete a player twice, this is a simple fix for that
+                    Game.players.remove(self)
+                    i.player.kills += 1
+                except:
+                    pass
+        for enemy in Game.enemies:
+            if self.Rect.colliderect(enemy.Rect) == 1:
+                try: # Sometimes the explosion accidentally delete a player twice, this is a simple fix for that
+                    Game.players.remove(self)
+                    if Game.players:
+                        for enemy in Game.enemies:
+                            enemy.target_player = random.choice(Game.players)
+                except:
+                    pass
 
-    def renderIdTag(self):
-        id_label = Text(str(self.id), size="xs", fg="red", bg="black", align=[self.x + self.sprite.get_width()/2, self.y], display=False)
-        id_label.y -= id_label.text.get_height() + 5
-        id_label.x -= id_label.text.get_width()/2
-        Game.surface.blit(id_label.text, (id_label.x, id_label.y))
+        if self.speed_boost_limit > 0:
+            if self.speed_timer.time_elapsed() < self.speed_boost_limit:
+                Game.surface.blit(
+                    scale(
+                        image.load("assets/images/speed_boost.png"),
+                        (int(InanimateEntity.tile_size * 0.5), int(InanimateEntity.tile_size * 0.5))
+                    ),
+                    (self.x, self.y)
+                )
+            else:
+                self.speed_timer.reset()
+                self.speed_boost_limit = 0
+        else:
+            self.speed_timer.reset()
+
+        if self.noclip_time_limit > 0:
+            if self.noclip_timer.time_elapsed() < self.noclip_time_limit:
+                Game.surface.blit(
+                    scale(
+                        image.load("assets/images/noclip.png"),
+                        (int(InanimateEntity.tile_size * 0.5), int(InanimateEntity.tile_size * 0.5))
+                        ),
+                    (self.x + Game.settings["game.tileSize"] - 15, self.y + Game.settings["game.tileSize"] - 15)
+                )
+            else:
+                self.noclip_timer.reset()
+                self.noclip_time_limit = 0
+                self.noClip = False
+        else:
+            self.noclip_timer.reset()
+            

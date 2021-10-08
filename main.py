@@ -1,10 +1,9 @@
-from pygame.transform import scale
 from pygame.constants import K_RSHIFT, KEYDOWN, KEYUP, K_DOWN, K_ESCAPE, K_LEFT, K_RIGHT, K_UP, K_a, K_d, K_f, K_g, K_h, K_i, K_j, K_k, K_l, K_q, K_r, K_s, K_t, K_u, K_w
 from objects.game import Game
 from objects.cursor import Cursor
 from objects.map import MapFactory, MapRenderer
 from objects.text import Text
-from pygame import init, display, event, QUIT, math, mixer, mouse, quit, time, draw, mixer
+from pygame import init, display, event, QUIT, mixer, mouse, quit, time, draw, mixer
 import sys
 import time as TIME
 mapFactory = MapFactory()
@@ -19,6 +18,15 @@ start = False
 open_option = False
 open_quit_option = False
 open_option_input_prompt  = False
+round_over = False
+round = 1
+
+wins = {
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+}
 
 player_count_options = [x + 1 for x in range(4)]
 bot_count_options = [x for x in range(4)]
@@ -26,6 +34,8 @@ win_limit_options = [x + 1 for x in range(9)]
 player_count_selected = Game.gameConf["game.player.count"]
 bot_count_selected = Game.gameConf["game.bot.count"]
 win_limit_selected = Game.gameConf["game.win.limit"]
+
+round_winner = None
 
 def main_menu():
     global start, open_option, open_quit_option
@@ -58,7 +68,7 @@ def main_menu():
     Game.surface.blit(quit_txt.text, (quit_txt.x, quit_txt.y))
 
 def option_form_prompt():
-    global open_option, open_option_input_prompt, mapFactory, player_count_selected, bot_count_selected, win_limit_selected
+    global open_option, open_option_input_prompt, mapFactory, player_count_selected, bot_count_selected, win_limit_selected, round
     Text("Mega Blast!", size="xl", fg="white", bg="black", align="top-center")
     warning1 = Text("Changing any value in the option will override", size="s", fg="white", bg="black", align="mid-center", display=False)
     warning2 = Text("your current game, Proceed?", size="s", fg="white", bg="black", align="mid-center", display=False)
@@ -105,6 +115,9 @@ def options_menu():  # sourcery no-metrics
         if mouse.get_pressed()[0]:
             open_option = False
             TIME.sleep(0.3)
+            player_count_selected = Game.gameConf["game.player.count"]
+            bot_count_selected = Game.gameConf["game.bot.count"]
+            win_limit_selected = Game.gameConf["game.win.limit"]
 
     player_count = Text("Player Amount", size="m", fg="white", bg="black", align="top-center", display=False)
     player_count.y += title.text.get_height() + back.text.get_height() + 40
@@ -119,6 +132,7 @@ def options_menu():  # sourcery no-metrics
             text.x = text.x + (i - 2)*45
             if mouse.get_pressed()[0]:
                 player_count_selected = j
+                bot_count_selected = 4 - j
                 TIME.sleep(0.3)
         Game.surface.blit(text.text, (text.x, text.y))
         if j == player_count_selected:
@@ -139,6 +153,7 @@ def options_menu():  # sourcery no-metrics
             text.x = text.x + (j - 2)*45
             if mouse.get_pressed()[0]:
                 bot_count_selected = j
+                player_count_selected = 4 - j
                 TIME.sleep(0.3)
         Game.surface.blit(text.text, (text.x, text.y))
         if j == bot_count_selected:
@@ -203,7 +218,7 @@ def quit_option_menu():
     Game.surface.blit(no.text, (no.x, no.y))
 
 def main():  # sourcery no-metrics
-    global start, open_option, cursor, open_quit_option, open_option_input_prompt
+    global start, open_option, cursor, open_quit_option, open_option_input_prompt, round_over, round, wins
     while True:
         cursor = Cursor()
         for e in event.get():
@@ -406,6 +421,11 @@ def main():  # sourcery no-metrics
 
         Game.surface.fill("black")
         if start:
+            if len(Game.players) == 1:
+                round_winner = Game.players[0].id
+                wins[round_winner] += 1
+                start = False
+                round_over = True
             mapRenderer.render()
             Game.framerate = int(clock.get_fps())
             Text(str(Game.framerate), size="xl", fg="white", bg="black", align="top-right")
@@ -415,19 +435,63 @@ def main():  # sourcery no-metrics
                 if mouse.get_pressed()[0]:
                     start = False
                     TIME.sleep(0.3)
+            Text("Round {}".format(round), size="xl", fg="white", bg="black", align="top-center")
+    
         elif open_option_input_prompt:
             option_form_prompt()
         elif open_option:
             options_menu()
         elif open_quit_option:
             quit_option_menu()
+        elif round_over:
+            Text("Round {}".format(round), size="xl", fg="white", bg="black", align="top-center")
+            round_over = Text("Round Over, Player {} Wins".format(round_winner), size="m", bg="black", fg="white", align="mid-center")
+
+            player1_wins = Text("Player 1: {}".format(wins[1]), size="m", fg="white", bg="black", align="mid-center", display=False)
+            player2_wins = Text("Player 2: {}".format(wins[2]), size="m", fg="white", bg="black", align="mid-center", display=False)
+            player3_wins = Text("Player 3: {}".format(wins[3]), size="m", fg="white", bg="black", align="mid-center", display=False)
+            player4_wins = Text("Player 4: {}".format(wins[4]), size="m", fg="white", bg="black", align="mid-center", display=False)
+            player1_wins.y += round_over.text.get_height() + 15
+            player2_wins.y += 2 * player1_wins.text.get_height() + 15
+            player3_wins.y += 3 * player2_wins.text.get_height() + 15
+            player4_wins.y += 4 * player3_wins.text.get_height() + 15
+            Game.surface.blit(player1_wins.text, (player1_wins.x, player1_wins.y))
+            Game.surface.blit(player2_wins.text, (player2_wins.x, player2_wins.y))
+            Game.surface.blit(player3_wins.text, (player3_wins.x, player3_wins.y))
+            Game.surface.blit(player4_wins.text, (player4_wins.x, player4_wins.y))
+
+            display.update()
+            TIME.sleep(2)
+            Game.modifyGameData("game-conf", 
+                {
+                    "game.player.count": player_count_selected, 
+                    "game.bot.count": bot_count_selected, 
+                    "game.win.limit": win_limit_selected 
+                }
+            )
+            MapFactory()
+            mapRenderer.start()
+            if round == Game.gameConf["game.win.limit"]:
+                Game.surface.fill((0, 0, 0))
+                Text("The Winner is Player {}".format(max(wins, key=wins.get)), size="xl", fg="white", bg="black", align="mid-center")
+                round = 0
+                start = False
+                display.update()
+                TIME.sleep(5)
+                wins = {
+                    1: 0,
+                    2: 0,
+                    3: 0,
+                    4: 0,
+                }
+            else:
+                start = True    
+            round_over = False
+            round += 1
         else:
             main_menu()
-
         display.update()
         clock.tick(30)
 
-
 if __name__ == '__main__':
     main()
-
