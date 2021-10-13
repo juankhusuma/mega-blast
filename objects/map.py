@@ -108,8 +108,8 @@ class MapFactory(Game):
                         _map[c][d] = "sb" # Speed Boost
                     if random.randrange(1, 60) == 2 and b == "e":
                         _map[c][d] = "ub" # Ultra Bomb
-                    if random.randrange(1, 60) == 5 and b == "e":
-                        _map[c][d] = "nc" # No Clip
+                    # if random.randrange(1, 60) == 5 and b == "e":
+                    #     _map[c][d] = "nc" # No Clip
         return _map
 
 
@@ -131,7 +131,7 @@ class MapRenderer(Game):
         player_limit = Game.gameConf["game.player.count"]
         player_count = 4
         harpies_count = 2
-        hunter_count = 2
+        hunter_count = 7
         space = 15
         for i, column in enumerate(Game.map["map"]):
             for j, item in enumerate(column):

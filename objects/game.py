@@ -1,4 +1,5 @@
-import json
+import json, pickle, neat
+import os
 from pygame import display, init, time
 init()
 
@@ -18,6 +19,18 @@ class Game:
         gameConf = json.load(__g)
     with open(mapPath, "r") as __h:
         map = json.load(__h)
+    with open("winner", "rb") as __i:
+        loaded_genome = pickle.load(__i)
+
+    local_dir = os.path.dirname(__file__)
+    config_path = os.path.join(local_dir, "config-feedforward")
+    neat_config = neat.Config(
+        neat.DefaultGenome,
+        neat.DefaultReproduction,
+        neat.DefaultSpeciesSet,
+        neat.DefaultStagnation,
+        "config-feedforward"
+    )
     resolution = settings["game.resolution"]
     if resolution == [0, 0]:
         screenInfo = display.Info()

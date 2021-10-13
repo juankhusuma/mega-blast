@@ -2,7 +2,6 @@ from objects.entity import AnimateEntity, Explosion
 from pygame import Rect, image 
 from pygame.transform import scale
 from objects.game import Game
-import math
 import random
 
 class Enemies(AnimateEntity):

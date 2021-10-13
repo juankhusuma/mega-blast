@@ -1,6 +1,5 @@
 import math
-from os import path
-from numpy import tile
+import neat
 from pygame.transform import scale
 from objects.stopwatch import Stopwatch
 from objects.game import Game
@@ -72,6 +71,7 @@ class Player(AnimateEntity):
         self.is_bot = False
         if len(Game.players) > 0:
             self.target = random.choice(Game.players)
+            self.nn = neat.nn.FeedForwardNetwork.create(Game.loaded_genome, Game.neat_config)
         self.idleAnimation = Player.animations[id]["idle"]
         self.moveAnimation = Player.animations[id]["move"]
         self.kills = 0
@@ -100,28 +100,51 @@ class Player(AnimateEntity):
                 self
             ))
 
-    def moveBot(self):
-        if (
-            isinstance(Game.map_item[Game.change2Dto1DIndex(self.tile_x + 1, self.tile_y)], Box) or
-            isinstance(Game.map_item[Game.change2Dto1DIndex(self.tile_x - 1, self.tile_y)], Box) or
-            isinstance(Game.map_item[Game.change2Dto1DIndex(self.tile_x, self.tile_y + 1)], Box) or
-            isinstance(Game.map_item[Game.change2Dto1DIndex(self.tile_x, self.tile_y - 1)], Box)
-        ): self.placeBomb()
-        else:
-            x, y = self.target.x, self.target.y
-            if x > self.x:
-                self.faceRight = True
-            elif x < self.x:
-                self.faceLeft = True
-            if y > self.y:
-                self.faceUp = True
-            elif y < self.y:
-                self.faceDown = True
+    def get_nearest_enemy(self):
+        nearest_enemy_coordinates = (0, 0)
+        nearest_enemy_distance = float("inf")
+        for enemy in Game.enemies:
+            enemy_distance = self.get_distance((enemy.x, enemy.y)) 
+            if enemy_distance < nearest_enemy_distance:
+                nearest_enemy_distance = enemy_distance
+                nearest_enemy_coordinates = (enemy.x, enemy.y)
+        return nearest_enemy_coordinates
 
-            self.move()
-            self.faceUp, self.faceDown, self.faceLeft, self.faceRight = False, False, False, False
-        if math.sqrt((self.x-self.target.x)**2 + (self.y-self.target.y)**2) < 50:
+    def moveBot(self):
+        upper_tile = 1 if isinstance(Game.map_item[Game.change2Dto1DIndex(self.tile_x, self.tile_y-1)], Wall) else 0
+        lower_tile = 1 if isinstance(Game.map_item[Game.change2Dto1DIndex(self.tile_x, self.tile_y+1)], Wall) else 0
+        left_tile = 1 if isinstance(Game.map_item[Game.change2Dto1DIndex(self.tile_x-1, self.tile_y)], Wall) else 0
+        right_tile = 1 if isinstance(Game.map_item[Game.change2Dto1DIndex(self.tile_x+1, self.tile_y)], Wall) else 0
+        output = self.nn.activate((
+            self.target.x,
+            self.target.y,
+            self.x, 
+            self.y, 
+            *self.get_nearest_player(), 
+            *self.get_nearest_enemy(),
+            upper_tile,
+            lower_tile,
+            left_tile,
+            right_tile,
+            self.get_distance(self.get_nearest_player()),
+            self.get_distance(self.get_nearest_enemy()),
+            self.get_distance((self.target.x, self.target.y))
+        ))
+        if output[0] > 0.5:
+            self.faceUp = True
+        if output[1] > 0.5:
+            self.faceDown = True
+        if output[2] > 0.5:
+            self.faceRight = True
+        if output[3] > 0.5:
+            self.faceLeft = True
+        if output[4] > 0.5:
             self.placeBomb()
+        self.move()
+        self.faceUp = False
+        self.faceDown = False
+        self.faceLeft = False
+        self.faceRight = False
 
 
     def animate(self):

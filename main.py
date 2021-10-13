@@ -3,12 +3,14 @@ from objects.game import Game
 from objects.cursor import Cursor
 from objects.map import MapFactory, MapRenderer
 from objects.text import Text
+from objects.stopwatch import Stopwatch
 from pygame import init, display, event, QUIT, mixer, mouse, quit, time, draw, mixer
 import sys
 import time as TIME
 mapFactory = MapFactory()
 init()
 mixer.init()
+game_timer = Stopwatch()
 
 display.set_caption("Mega Blast")
 clock = time.Clock()
@@ -477,7 +479,10 @@ def main():  # sourcery no-metrics
                 round = 0
                 start = False
                 display.update()
-                TIME.sleep(5)
+                # TIME.sleep(5)
+                while game_timer.time_elapsed() < 5000:
+                    continue
+                game_timer.reset()
                 wins = {
                     1: 0,
                     2: 0,

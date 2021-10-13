@@ -21,7 +21,6 @@ Player 4
 Power Ups:
 - The red bombs gives you 5 super bombs that explode into a bigger fire
 - The coins gives you a speed boost for 5 seconds
-- The diamonds gives you the ability to move through walls for 10 seconds
 
 Sincerely,
 Juan Dharmananda Khusuma

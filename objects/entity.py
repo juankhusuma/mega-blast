@@ -103,18 +103,14 @@ class AnimateEntity(Game):
         [x, y] = target
         return math.sqrt((x-self.x)**2+(y-self.y)**2)
 
-    def get_nearest_player(self, for_bot=False):
+    def get_nearest_player(self):
         nearest_player_coordinates = (0, 0)
-        nearest_player_tile_coordinates = (0, 0)
         nearest_player_distance = float("inf")
         for player in Game.players:
             player_distance = self.get_distance((player.x, player.y)) 
             if player_distance < nearest_player_distance and player.id != self.id:
                 nearest_player_distance = player_distance
                 nearest_player_coordinates = (player.x, player.y)
-                nearest_player_tile_coordinates = (player.tile_x + 1, player.tile_y + 1)
-        if for_bot:
-            return nearest_player_tile_coordinates
         return nearest_player_coordinates
         
     def move(self):
@@ -137,6 +133,15 @@ class AnimateEntity(Game):
                 self.x -= self.speed
             if self.faceRight and self.x + self.speed < Game.x_offset +( Game.map_width*Game.settings["game.tileSize"]) - Game.settings["game.tileSize"]:
                 self.x += self.speed
+
+            if self.faceUp and self.y - self.speed < Game.y_offset + Game.settings["game.tileSize"]:
+                self.y = Game.y_offset + (Game.settings["game.tileSize"]*2)
+            if self.faceDown and self.y + self.speed > Game.y_offset + (Game.map_height*Game.settings["game.tileSize"]) - Game.settings["game.tileSize"]:
+                self.y = Game.y_offset + (Game.map_height*Game.settings["game.tileSize"]) - 2*Game.settings["game.tileSize"]
+            if self.faceLeft and self.x - self.speed < Game.x_offset + Game.settings["game.tileSize"]:
+                self.x = Game.x_offset + (Game.settings["game.tileSize"]*2)
+            if self.faceRight and self.x + self.speed > Game.x_offset +( Game.map_width*Game.settings["game.tileSize"]) - Game.settings["game.tileSize"]:
+                self.x = Game.x_offset +( Game.map_width*Game.settings["game.tileSize"]) - Game.settings["game.tileSize"]*2
 
             self.Rect.y = self.y 
             self.Rect.x = self.x
